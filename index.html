@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frontier Safari Spotter</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+
+html, body { min-height: 100%; width: 100%; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh;
+  background: #4a7fb5;
+  position: relative;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem 9rem;
+}
+
+/* ══ SKY ══════════════════════════════════════════════════ */
+.sky {
+  position: fixed; inset: 0;
+  background: linear-gradient(180deg, #1a3a5c 0%, #2d6a9f 18%, #4a9fd4 40%, #87ceeb 60%, #c5e8c0 78%, #8db87a 88%, #5a7d3a 100%);
+  z-index: 0;
+}
+
+/* Stars (visible at top) */
+.star { position: fixed; background: #fff; border-radius: 50%; z-index: 1; pointer-events: none; animation: twinkle 3s ease-in-out infinite; }
+@keyframes twinkle { 0%,100%{opacity:0.9} 50%{opacity:0.3} }
+
+/* Sun / moon area */
+.sun {
+  position: fixed; top: 28px; right: 80px;
+  width: 68px; height: 68px;
+  background: radial-gradient(circle at 40% 38%, #ffe066, #f9a825);
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px rgba(255,214,0,0.18), 0 0 40px rgba(255,200,0,0.35);
+  z-index: 2; pointer-events: none;
+}
+
+/* Clouds */
+.cld { position: fixed; pointer-events: none; z-index: 2; }
+.cld-body { position: relative; }
+.cld-body::before, .cld-body::after { content:''; position:absolute; border-radius:50%; }
+.c1 .cld-body { width:130px;height:44px; background:rgba(255,255,255,0.85); border-radius:50px; top:9%; left:3%; animation:dr1 22s ease-in-out infinite; }
+.c1 .cld-body::before { width:64px;height:64px;background:rgba(255,255,255,0.85);top:-32px;left:16px; }
+.c1 .cld-body::after  { width:46px;height:46px;background:rgba(255,255,255,0.85);top:-22px;left:64px; }
+.c2 .cld-body { width:105px;height:36px; background:rgba(255,255,255,0.8); border-radius:50px; top:19%; left:62%; animation:dr2 28s ease-in-out infinite; }
+.c2 .cld-body::before { width:54px;height:54px;background:rgba(255,255,255,0.8);top:-26px;left:12px; }
+.c2 .cld-body::after  { width:38px;height:38px;background:rgba(255,255,255,0.8);top:-16px;left:54px; }
+.c3 .cld-body { width:80px;height:28px; background:rgba(255,255,255,0.75); border-radius:50px; top:6%; left:38%; animation:dr1 19s ease-in-out infinite 5s; }
+.c3 .cld-body::before { width:44px;height:44px;background:rgba(255,255,255,0.75);top:-22px;left:8px; }
+.c3 .cld-body::after  { width:30px;height:30px;background:rgba(255,255,255,0.75);top:-13px;left:40px; }
+@keyframes dr1 { 0%,100%{transform:translateX(0)} 50%{transform:translateX(30px)} }
+@keyframes dr2 { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-24px)} }
+
+/* Flying commercial plane across sky */
+.sky-plane {
+  position: fixed; font-size: 28px; z-index: 3; pointer-events: none;
+  animation: flyby 32s linear infinite;
+  filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.3));
+}
+.sky-plane2 {
+  position: fixed; font-size: 20px; z-index: 3; pointer-events: none;
+  animation: flyby2 48s linear infinite 12s;
+  opacity: 0.75;
+}
+@keyframes flyby  { 0%{left:-90px;top:13%} 40%{top:9%} 70%{top:15%} 100%{left:110%;top:13%} }
+@keyframes flyby2 { 0%{left:-60px;top:22%} 50%{top:18%} 100%{left:110%;top:22%} }
+
+/* ══ AIRPORT GROUND SCENE ══════════════════════════════════ */
+
+/* Runway */
+.runway {
+  position: fixed; bottom: 54px; left: 0; right: 0; height: 72px;
+  background: #2a2a2a; z-index: 4; pointer-events: none;
+}
+.runway::before {
+  content: '';
+  position: absolute; top: 50%; left: 0; right: 0; height: 4px;
+  transform: translateY(-50%);
+  background: repeating-linear-gradient(90deg, #FFD600 0, #FFD600 32px, transparent 32px, transparent 56px);
+}
+/* Runway edge lights */
+.runway::after {
+  content: '';
+  position: absolute; bottom: 3px; left: 0; right: 0; height: 3px;
+  background: repeating-linear-gradient(90deg, #ff6600 0, #ff6600 6px, transparent 6px, transparent 28px);
+}
+
+/* Taxiway line */
+.taxiway-line {
+  position: fixed; bottom: 128px; left: 0; right: 0; height: 2px;
+  background: repeating-linear-gradient(90deg, #FFD600 0, #FFD600 18px, transparent 18px, transparent 36px);
+  z-index: 4; pointer-events: none; opacity: 0.6;
+}
+
+/* Tarmac / apron area */
+.tarmac {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 58px;
+  background: #3d3d3d; z-index: 3; pointer-events: none;
+}
+
+/* Grass strips beside runway */
+.grass-strip {
+  position: fixed; z-index: 3; pointer-events: none;
+  background: #5a7d3a;
+}
+.grass-l { bottom: 126px; left:0; right:0; height: 30px; }
+.grass-r { bottom: 0; left: 0; right: 0; height: 0; }
+
+/* Ground / infield grass */
+.infield {
+  position: fixed; bottom: 126px; left: 0; right: 0;
+  height: calc(42% - 126px);
+  background: linear-gradient(180deg, #7ab35a 0%, #5a8a3a 100%);
+  z-index: 2; pointer-events: none;
+}
+
+/* ══ AIRPORT STRUCTURES ════════════════════════════════════ */
+
+/* Control tower */
+.tower {
+  position: fixed; right: 120px; bottom: 126px;
+  z-index: 5; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center;
+}
+.tower-cab {
+  width: 42px; height: 22px;
+  background: #b8d4e8;
+  border: 2px solid #4a7fb5;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+}
+.tower-cab::after {
+  content: '';
+  position: absolute; top: 3px; left: 3px; right: 3px; bottom: 3px;
+  background: rgba(100,180,255,0.5);
+  border-radius: 2px;
+}
+.tower-neck {
+  width: 14px; height: 40px;
+  background: linear-gradient(90deg, #888 0%, #bbb 50%, #888 100%);
+}
+.tower-base {
+  width: 28px; height: 16px;
+  background: #777;
+  border-radius: 2px 2px 0 0;
+}
+.tower-light {
+  width: 8px; height: 8px;
+  background: #ff3333;
+  border-radius: 50%;
+  position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+  box-shadow: 0 0 6px #ff0000;
+  animation: blink 1.2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+/* Terminal building */
+.terminal {
+  position: fixed; left: 0; bottom: 126px;
+  z-index: 5; pointer-events: none;
+  display: flex; align-items: flex-end;
+}
+.terminal-main {
+  width: 90px; height: 52px;
+  background: #d4c5a9;
+  border: 2px solid #a89070;
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  position: relative;
+}
+.terminal-main::before {
+  content: 'TERMINAL';
+  position: absolute; top: 6px; left: 0; right: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; color: #5a4030; text-align: center; letter-spacing: 1px;
+}
+.terminal-main::after {
+  content: '';
+  position: absolute; top: 20px; left: 5px; right: 5px; bottom: 0;
+  background: repeating-linear-gradient(90deg, rgba(100,160,220,0.5) 0, rgba(100,160,220,0.5) 8px, transparent 8px, transparent 14px);
+}
+.terminal-wing {
+  width: 50px; height: 34px;
+  background: #c4b599;
+  border: 2px solid #a89070;
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+}
+
+/* Jet bridge */
+.jetbridge {
+  position: fixed; left: 78px; bottom: 126px;
+  width: 40px; height: 14px;
+  background: #b0a080;
+  border: 1.5px solid #887060;
+  transform-origin: left center;
+  z-index: 5; pointer-events: none;
+}
+
+/* Ground equipment */
+.ground-eq {
+  position: fixed; bottom: 126px; z-index: 6; pointer-events: none;
+  font-size: 20px;
+}
+.eq-fuel  { left: 28%; animation: groundroll 16s linear infinite; }
+.eq-bag   { left: 44%; animation: groundroll 22s linear infinite 4s; }
+@keyframes groundroll { 0%,100%{transform:translateX(0)} 50%{transform:translateX(12px)} }
+
+/* Windsock */
+.windsock-pole {
+  position: fixed; right: 200px; bottom: 126px;
+  width: 3px; height: 38px;
+  background: #888;
+  z-index: 5; pointer-events: none;
+}
+.windsock {
+  position: fixed; right: 178px; bottom: 155px;
+  font-size: 18px; z-index: 5; pointer-events: none;
+  animation: sock 2.5s ease-in-out infinite;
+  transform-origin: left center;
+}
+@keyframes sock { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(10deg)} }
+
+/* Taxiing plane on runway */
+.taxi-plane {
+  position: fixed; bottom: 68px; font-size: 36px;
+  z-index: 7; pointer-events: none;
+  animation: taxi 38s linear infinite;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.4));
+}
+@keyframes taxi { 0%{left:-80px} 100%{left:110%} }
+
+/* Plane spotter figure */
+.spotter {
+  position: fixed; right: 14px; bottom: 130px;
+  z-index: 8; pointer-events: none; text-align: center;
+  animation: spotterway 5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+.spotter-emoji { font-size: 42px; display: block; }
+.spotter-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: #fff;
+  background: rgba(0,0,0,0.55);
+  border-radius: 3px; padding: 1px 4px;
+  letter-spacing: 0.5px; margin-top: 1px;
+  text-transform: uppercase;
+}
+@keyframes spotterway { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+
+/* FIDS board (departure board) */
+.fids {
+  position: fixed; left: 12px; top: 12px;
+  background: #111;
+  border: 2px solid #333;
+  border-radius: 6px;
+  padding: 5px 8px;
+  z-index: 8; pointer-events: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  min-width: 140px;
+}
+.fids-title {
+  color: #FFD600; font-size: 8px; letter-spacing: 1px;
+  border-bottom: 1px solid #333; padding-bottom: 2px; margin-bottom: 3px;
+  text-align: center;
+}
+.fids-row { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 1px; }
+.fids-row span:first-child { color: #4af; }
+.fids-row span:last-child  { color: #4f4; }
+.fids-row.dep { color: #aaa; }
+.fids-row.dep span:last-child { color: #ff6; }
+
+/* Animals along the infield */
+.field-animal {
+  position: fixed; z-index: 5; pointer-events: none;
+  animation: graze 4s ease-in-out infinite;
+}
+.fa-deer   { bottom: 160px; left: 34%; font-size: 32px; animation-delay: 0.5s; }
+.fa-rabbit { bottom: 158px; left: 50%; font-size: 20px; animation-delay: 1.2s; }
+.fa-fox    { bottom: 156px; left: 58%; font-size: 26px; animation-delay: 0.3s; }
+.fa-bird1  { bottom: 200px; left: 42%; font-size: 18px; animation: birdfly 12s ease-in-out infinite; }
+.fa-bird2  { bottom: 215px; left: 46%; font-size: 14px; animation: birdfly 12s ease-in-out infinite 1.5s; }
+.fa-bird3  { bottom: 195px; left: 72%; font-size: 16px; animation: birdfly 16s ease-in-out infinite 3s; }
+.fa-gopher { bottom: 155px; left: 65%; font-size: 18px; animation-delay: 2s; }
+@keyframes graze { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+@keyframes birdfly {
+  0%   { transform: translateX(0) translateY(0); }
+  25%  { transform: translateX(30px) translateY(-15px); }
+  50%  { transform: translateX(60px) translateY(-5px); }
+  75%  { transform: translateX(90px) translateY(-20px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+/* ATC radio chatter visual — scrolling ticker */
+.ticker-wrap {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 26px;
+  background: #111; border-top: 2px solid #FFD600;
+  z-index: 9; pointer-events: none; overflow: hidden;
+  display: flex; align-items: center;
+}
+.ticker {
+  display: flex; white-space: nowrap;
+  animation: tickerscroll 40s linear infinite;
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+}
+.ticker-item { color: #4af; padding: 0 30px; }
+.ticker-item.atc { color: #FFD600; }
+.ticker-item.warn { color: #ff6633; }
+@keyframes tickerscroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+/* ══ APP CARD ══════════════════════════════════════════════ */
+.app {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 480px;
+  background: rgba(18, 24, 32, 0.94);
+  border-radius: 16px;
+  border: 2px solid #4a9fd4;
+  box-shadow: 0 0 0 1px rgba(74,159,212,0.3), 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  overflow: hidden;
+  margin-top: 0.5rem;
+  backdrop-filter: blur(2px);
+}
+
+/* Banner — ATC style */
+.banner {
+  background: linear-gradient(135deg, #0d1f33 0%, #1a3a5c 60%, #0d2b45 100%);
+  border-bottom: 2px solid #4a9fd4;
+  padding: 1rem 1.25rem 0.9rem;
+  position: relative; overflow: hidden; text-align: center;
+}
+.banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, transparent, transparent 30px, rgba(74,159,212,0.06) 30px, rgba(74,159,212,0.06) 31px);
+}
+/* Radar sweep overlay */
+.radar-ring {
+  position: absolute; right: -30px; top: -30px;
+  width: 100px; height: 100px;
+  border: 1px solid rgba(74,159,212,0.2);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.radar-ring::after {
+  content: '';
+  position: absolute; inset: 10px;
+  border: 1px solid rgba(74,159,212,0.15);
+  border-radius: 50%;
+}
+.banner-peekers {
+  position: absolute; bottom: -2px; left: 0; right: 0;
+  display: flex; justify-content: space-between; padding: 0 12px;
+  pointer-events: none; z-index: 2;
+}
+.peeker { font-size: 28px; }
+.banner-content { position: relative; z-index: 1; }
+.banner-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 26px; color: #7dd3fc; letter-spacing: 0.5px; line-height: 1;
+  text-shadow: 0 0 20px rgba(125,211,252,0.4);
+}
+.banner-callsign {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: #FFD600; letter-spacing: 0.18em;
+  margin-top: 3px; opacity: 0.85;
+}
+
+/* Body */
+.body { padding: 1.1rem 1.1rem 1.4rem; }
+
+.search-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; font-weight: 400; color: #4a9fd4;
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px;
+}
+
+.input-row { display: flex; gap: 8px; margin-bottom: 0.9rem; }
+
+.input-row input {
+  flex: 1; min-width: 0;
+  font-family: 'Share Tech Mono', monospace; font-size: 24px; letter-spacing: 0.14em;
+  padding: 10px 14px;
+  border: 2px solid #2d5a7a; border-radius: 10px; outline: none;
+  color: #7dd3fc; background: #0d1f33;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input-row input:focus {
+  border-color: #4a9fd4;
+  box-shadow: 0 0 0 3px rgba(74,159,212,0.2), 0 0 12px rgba(74,159,212,0.15);
+}
+.input-row input::placeholder { font-size: 14px; letter-spacing: 0; color: #2d5a7a; }
+
+.find-btn {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #e65100 0%, #bf360c 100%);
+  color: #fff; border: none;
+  border-radius: 10px; padding: 10px 16px;
+  font-family: 'Fredoka One', cursive; font-size: 16px; white-space: nowrap;
+  box-shadow: 0 4px 0 #7f1a00, 0 0 12px rgba(230,81,0,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  letter-spacing: 0.5px;
+}
+.find-btn:hover { background: linear-gradient(135deg, #bf360c 0%, #9a2200 100%); }
+.find-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #7f1a00; }
+.find-btn:disabled { background: #2d3a44; box-shadow: none; color: #556; transform: none; }
+
+.rand-btn {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+  color: #fff; border: none;
+  border-radius: 10px; padding: 10px 14px;
+  font-family: 'Fredoka One', cursive; font-size: 16px;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 #0a3d0a, 0 0 12px rgba(46,125,50,0.3);
+  transition: transform 0.08s, box-shadow 0.08s;
+  letter-spacing: 0.5px;
+}
+.rand-btn:hover { background: linear-gradient(135deg, #1b5e20 0%, #0a3d0a 100%); }
+.rand-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0a3d0a; }
+.rand-btn:disabled { background: #2d3a44; box-shadow: none; color: #556; transform: none; }
+
+.status {
+  display: flex; align-items: center; gap: 9px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px; color: #4a9fd4; min-height: 20px; margin-bottom: 0.65rem;
+}
+.spinner { width: 16px; height: 16px; border: 2px solid #1a3a5c; border-top-color: #4a9fd4; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* ── Result card ── */
+.card {
+  border: 1.5px solid #2d5a7a; border-radius: 12px;
+  padding: 1rem; display: none;
+  background: #0d1f33;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: repeating-linear-gradient(90deg, #4a9fd4 0, #4a9fd4 18px, #2d5a7a 18px, #2d5a7a 36px);
+}
+.card.show { display: block; }
+
+/* Tail ID badge (ATC style header) */
+.tail-id-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 8px 0 10px;
+  padding: 6px 10px;
+  background: #0a1825;
+  border: 1px solid #2d5a7a; border-radius: 8px;
+  font-family: 'Share Tech Mono', monospace;
+}
+.tail-reg { font-size: 20px; color: #FFD600; letter-spacing: 0.12em; }
+.tail-type-badge {
+  font-size: 10px; color: #4a9fd4;
+  background: #0d2b45; border: 1px solid #2d5a7a;
+  border-radius: 4px; padding: 2px 8px; letter-spacing: 0.1em;
+}
+
+.animal-row { display: flex; align-items: center; gap: 12px; margin-bottom: 0.85rem; }
+.emoji-bubble {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: #0a1825; border: 2px solid #4a9fd4;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px; flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(74,159,212,0.25);
+}
+.animal-name { font-family: 'Fredoka One', cursive; font-size: 22px; color: #7dd3fc; line-height: 1.1; }
+.animal-species { font-size: 12px; font-weight: 700; color: #6b9ab8; margin-top: 2px; }
+.aircraft-badge {
+  display: inline-block;
+  background: #0d2b45; border: 1px solid #2d5a7a;
+  border-radius: 20px; padding: 2px 9px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; color: #4a9fd4; margin-top: 4px;
+}
+
+/* Compliment — styled as ATC clearance */
+.compliment {
+  background: #0a1825; border: 1px solid #FFD600;
+  border-left: 3px solid #FFD600;
+  border-radius: 6px; padding: 7px 10px;
+  font-size: 12px; font-weight: 800; color: #FFD600;
+  margin-bottom: 0.75rem;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 0.02em;
+}
+.compliment::before { content: '📡 ATC: '; color: #4a9fd4; }
+
+/* Pun — styled as pilot readback */
+.pun {
+  background: #0d2b45; border: 1px solid #2d5a7a;
+  border-left: 3px solid #4af;
+  border-radius: 6px; padding: 6px 10px;
+  font-size: 12px; font-weight: 700; color: #7dd3fc;
+  margin-bottom: 0.75rem; font-style: italic;
+  font-family: 'Share Tech Mono', monospace;
+}
+.pun::before { content: '✈️ PILOt: '; color: #aaa; font-style: normal; }
+
+.location-box {
+  background: #0a1825;
+  border: 1px solid #2d5a7a;
+  border-left: 3px solid #f9a825;
+  border-radius: 6px; padding: 7px 10px;
+  font-size: 13px; font-weight: 700; color: #ffd54f;
+  margin-bottom: 0.75rem;
+  font-family: 'Nunito', sans-serif;
+  line-height: 1.4;
+}
+.location-box::before { content: '📍 '; }
+
+.stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px;
+  border-top: 1px solid #1a3a5c; padding-top: 0.8rem; margin-bottom: 0.7rem;
+}
+.stat {
+  background: #0a1825; border: 1px solid #1a3a5c;
+  border-radius: 8px; padding: 7px 8px; text-align: center;
+}
+.stat-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: #4a9fd4; margin-bottom: 3px;
+}
+.stat-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px; color: #FFD600; font-weight: 400;
+}
+
+.live-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: #4af;
+  background: #0a1825; border: 1px solid #2d5a7a;
+  border-radius: 4px; padding: 3px 10px;
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+.live-dot { width: 6px; height: 6px; background: #4f4; border-radius: 50%; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.err {
+  background: #1a0800; border: 1px solid #ff4400;
+  border-left: 3px solid #ff4400;
+  border-radius: 8px; padding: 0.85rem 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px; color: #ff9966; line-height: 1.7;
+}
+.err::before { content: '⚠ ATC: '; color: #ff4400; }
+
+.unknown-tail {
+  background: #1a1000; border: 1px solid #ffaa00;
+  border-left: 3px solid #ffaa00;
+  border-radius: 8px; padding: 0.85rem 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px; color: #ffcc66; line-height: 1.7;
+}
+.unknown-tail::before { content: '❓ SQUAWK: '; color: #ffaa00; }
+.unknown-tail a { color: #4a9fd4; }
+
+.paw-trail {
+  display: flex; gap: 3px; justify-content: center;
+  margin: 0.65rem 0 0; opacity: 0.2; font-size: 12px; letter-spacing: 5px;
+}
+.footer {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: #2d5a7a; margin-top: 0.5rem;
+  text-align: center; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.footer a { color: #4a9fd4; }
+
+
+.flyover-plane {
+  position: absolute; white-space: nowrap; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+.flyover-plane .fp-body { font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+.flyover-plane .fp-animal { font-size: 15px; line-height: 1; margin-top: -6px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+.flyover-plane .fp-label { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: #fff; background: rgba(0,0,0,0.6); border-radius: 3px; padding: 1px 5px; margin-top: 2px; letter-spacing: 0.08em; white-space: nowrap; }
+.flyover-tip { position: absolute; background: rgba(10,24,37,0.92); border: 1px solid #4a9fd4; border-radius: 8px; padding: 5px 9px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #7dd3fc; pointer-events: none; white-space: nowrap; z-index: 20; line-height: 1.6; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transform: translateX(-50%); }
+.flyover-tip strong { color: #FFD600; display: block; margin-bottom: 1px; }
+
+/* Fun fact */
+.fun-fact {
+  background: #0a1825;
+  border: 1px solid #1a3a5c;
+  border-left: 3px solid #f9a825;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 11px;
+  color: #c9a84c;
+  margin-top: 0px;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+}
+.fun-fact::before {
+  content: '🦁 FUN FACT: ';
+  font-family: 'Share Tech Mono', monospace;
+  color: #f9a825;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+/* ── iPad & Mobile Responsive ── */
+@media (max-width: 768px) {
+  body { padding: 1rem 0.5rem 7rem; }
+
+  .app { border-radius: 20px; border-width: 3px; }
+
+  .banner { padding: 0.9rem 1rem 0.75rem; }
+  .banner-title { font-size: 22px; }
+  .banner-callsign { font-size: 9px; }
+  .peeker { font-size: 24px; }
+
+  .body { padding: 1rem 0.9rem 1.2rem; }
+
+  .input-row { flex-wrap: nowrap; gap: 6px; }
+  .input-row input { font-size: 20px; padding: 9px 10px; min-width: 0; }
+  .find-btn { padding: 9px 12px; font-size: 14px; }
+  .rand-btn { padding: 9px 10px; font-size: 13px; }
+
+  .animal-name { font-size: 18px; }
+  .emoji-bubble { width: 60px; height: 60px; font-size: 36px; }
+
+  .stats { gap: 5px; }
+  .stat { padding: 6px 7px; }
+  .stat-label { font-size: 8px; }
+  .stat-val { font-size: 13px; }
+
+  .compliment { font-size: 11px; padding: 6px 9px; }
+  .pun { font-size: 11px; padding: 5px 9px; }
+  .fun-fact { font-size: 10px; padding: 6px 9px; }
+  .location-box { font-size: 12px; padding: 6px 9px; }
+
+  /* Scene animals smaller on mobile */
+  .scene-animal { font-size: 30px; }
+  .sa-giraffe { font-size: 42px; }
+  .acacia { font-size: 44px; }
+  .watcher { font-size: 36px; right: 0; }
+  .tower { right: 70px; }
+  .fids { font-size: 7px; min-width: 110px; padding: 4px 6px; }
+}
+
+@media (max-width: 480px) {
+  .banner-title { font-size: 19px; }
+  .input-row input { font-size: 18px; padding: 8px 9px; }
+  .find-btn { padding: 8px 10px; font-size: 13px; }
+  .rand-btn { padding: 8px 8px; font-size: 12px; }
+  .sa-zebra, .sa-lion { display: none; }
+}
+
+/* iPad landscape — give the card more room */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .app { max-width: 600px; }
+  .banner-title { font-size: 28px; }
+  .input-row input { font-size: 26px; }
+  .find-btn, .rand-btn { font-size: 17px; padding: 10px 18px; }
+  .animal-name { font-size: 24px; }
+  .emoji-bubble { width: 80px; height: 80px; font-size: 48px; }
+  .compliment { font-size: 13px; }
+  .pun { font-size: 13px; }
+  .fun-fact { font-size: 12px; }
+  .location-box { font-size: 14px; }
+  .stat-val { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sky layer -->
+<div class="sky"></div>
+
+<!-- Stars -->
+<div class="star" style="width:2px;height:2px;top:3%;left:12%;animation-delay:0s"></div>
+<div class="star" style="width:2px;height:2px;top:5%;left:28%;animation-delay:0.8s"></div>
+<div class="star" style="width:3px;height:3px;top:2%;left:55%;animation-delay:1.4s"></div>
+<div class="star" style="width:2px;height:2px;top:4%;left:72%;animation-delay:0.3s"></div>
+<div class="star" style="width:2px;height:2px;top:1%;left:88%;animation-delay:1.9s"></div>
+
+<div class="sun"></div>
+<div class="cld c1"><div class="cld-body"></div></div>
+<div class="cld c2"><div class="cld-body"></div></div>
+<div class="cld c3"><div class="cld-body"></div></div>
+
+<div class="sky-plane">🛫</div>
+<div class="sky-plane2">✈️</div>
+
+<!-- FIDS board -->
+<div class="fids">
+  <div class="fids-title">✈ DEPARTURES</div>
+  <div class="fids-row"><span>FFT 1756</span><span>ON TIME</span></div>
+  <div class="fids-row dep"><span>FFT 4410</span><span>BOARDING</span></div>
+  <div class="fids-row"><span>FFT 0892</span><span>DEPARTED</span></div>
+  <div class="fids-row dep"><span>FFT 2241</span><span>DELAYED</span></div>
+</div>
+
+<!-- Infield -->
+<div class="infield"></div>
+
+<!-- Animals in the infield -->
+<div class="field-animal fa-deer">🦌</div>
+<div class="field-animal fa-rabbit">🐇</div>
+<div class="field-animal fa-fox">🦊</div>
+<div class="field-animal fa-bird1">🐦</div>
+<div class="field-animal fa-bird2">🐦</div>
+<div class="field-animal fa-bird3">🦅</div>
+<div class="field-animal fa-gopher">🦫</div>
+
+<!-- Taxiway -->
+<div class="taxiway-line"></div>
+
+<!-- Airport structures -->
+<div class="terminal">
+  <div class="terminal-wing"></div>
+  <div class="terminal-main"></div>
+</div>
+<div class="jetbridge"></div>
+
+<!-- Ground equipment -->
+<div class="ground-eq eq-fuel">⛽</div>
+<div class="ground-eq eq-bag">🧳</div>
+
+<!-- Control tower -->
+<div class="tower">
+  <div class="tower-light"></div>
+  <div class="tower-cab"></div>
+  <div class="tower-neck"></div>
+  <div class="tower-base"></div>
+</div>
+
+<!-- Windsock -->
+<div class="windsock-pole"></div>
+<div class="windsock">🎐</div>
+
+<!-- Runway -->
+<div class="runway"></div>
+
+<!-- Taxiing plane -->
+<div class="taxi-plane">🛬</div>
+
+<!-- Tarmac -->
+<div class="tarmac"></div>
+
+<!-- Plane spotter -->
+<div class="spotter">
+  <span class="spotter-emoji">🧍🔭</span>
+  <div class="spotter-label">spotter</div>
+</div>
+
+<!-- ATC ticker -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item atc">ATC: FFT1756 cleared for takeoff runway 28L</span>
+    <span class="ticker-item">🐺 N369FR Chinook the Gray Wolf · 36,000ft · 443kts</span>
+    <span class="ticker-item warn">⚠ Wildlife on runway — delay taxiing</span>
+    <span class="ticker-item atc">FFT4410 contact approach on 119.1</span>
+    <span class="ticker-item">🦌 A deer was spotted crossing taxiway Charlie</span>
+    <span class="ticker-item">🐦 Bird strike advisory: flocks near runway 10R</span>
+    <span class="ticker-item atc">Frontier ground, N326FR Skye the Blue Jay pushback approved</span>
+    <span class="ticker-item warn">🦊 Fox family living near perimeter fence — sector 4</span>
+    <span class="ticker-item">🔭 Planespotter tip: best light is golden hour on the south fence</span>
+    <span class="ticker-item atc">FFT0892 you are cleared to land — welcome to the safari!</span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item atc">ATC: FFT1756 cleared for takeoff runway 28L</span>
+    <span class="ticker-item">🐺 N369FR Chinook the Gray Wolf · 36,000ft · 443kts</span>
+    <span class="ticker-item warn">⚠ Wildlife on runway — delay taxiing</span>
+    <span class="ticker-item atc">FFT4410 contact approach on 119.1</span>
+    <span class="ticker-item">🦌 A deer was spotted crossing taxiway Charlie</span>
+    <span class="ticker-item">🐦 Bird strike advisory: flocks near runway 10R</span>
+    <span class="ticker-item atc">Frontier ground, N326FR Skye the Blue Jay pushback approved</span>
+    <span class="ticker-item warn">🦊 Fox family living near perimeter fence — sector 4</span>
+    <span class="ticker-item">🔭 Planespotter tip: best light is golden hour on the south fence</span>
+    <span class="ticker-item atc">FFT0892 you are cleared to land — welcome to the safari!</span>
+  </div>
+</div>
+
+<div id="flyover-container" style="position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:8;overflow:hidden;"></div>
+
+<!-- App card -->
+<div class="app">
+  <div class="banner">
+    <div class="radar-ring"></div>
+    <div class="banner-peekers">
+      <span class="peeker">🦜</span>
+      <span class="peeker">🐆</span>
+    </div>
+    <div class="banner-content">
+      <div class="banner-title">🔭 Frontier Safari Spotter</div>
+      <div class="banner-callsign">FFT · PLANESPOTTER · WILDLIFE TRACKER · ADS-B LIVE</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="search-label">📡 Enter flight number</div>
+    <div class="input-row">
+      <input type="text" id="flightNum" placeholder="e.g. 1756" maxlength="6" inputmode="numeric" />
+      <button class="find-btn" id="goBtn">🛫 Spot it!</button>
+      <button class="rand-btn" id="randBtn">🎲 Random!</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div id="card" class="card"></div>
+    <div class="paw-trail">🐾🐾🐾🐾🐾🐾🐾🐾</div>
+    <p class="footer">Live ADS-B · <a href="https://adsb.fi" target="_blank">adsb.fi</a> · Personal non-commercial use</p>
+  </div>
+</div>
+
+<script>
+const WORKER_URL = "https://noisy-frog-4459.simmons-rob.workers.dev";
+
+const FLEET = {
+  // ── A320 ceo (older) ──────────────────────────────────────
+  "N202FR":{name:"Colorado the Ram",species:"Bighorn Ram",emoji:"🐏",ac:"A320",fact:"Bighorn rams can run 30mph and their horns weigh up to 30 lbs — 10% of their body weight. They are basically wearing a bowling ball on their head at all times and they do not care."},
+  "N213FR":{name:"Montana the Elk",species:"Elk",emoji:"🫎",ac:"A320",fact:"Bull elk grow antlers up to 4 feet wide and shed them EVERY YEAR. They just throw away 40 pounds of bone annually like it's nothing. Unhinged."},
+  "N219FR":{name:"Jack the Snowshoe Hare",species:"Snowshoe Hare",emoji:"🐇",ac:"A320",fact:"Snowshoe hares turn completely white in winter for camouflage — triggered by day length not temperature. The hare is literally gaslighting winter into thinking it doesn't exist."},
+  "N223FR":{name:"Francesca the Flamingo",species:"Flamingo",emoji:"🦩",ac:"A320",fact:"Flamingos are born WHITE and turn pink from eating shrimp. They are what they eat in the most literal and visible way possible. You are not what you eat. The flamingo is."},
+  "N227FR":{name:"Grizwald the Bear",species:"Bear",emoji:"🐻",ac:"A320",fact:"Grizzly bears can smell food from 20 miles away — 7x better than a bloodhound. Somewhere 20 miles away a sandwich exists and the bear knows EXACTLY where it is."},
+  "N228FR":{name:"Orville the Cardinal",species:"Cardinal",emoji:"🐦",ac:"A320",fact:"Male cardinals feed their mate during courtship — bringing her food beak to beak. They invented DoorDash before DoorDash. Respect."},
+  "N229FR":{name:"Peachy the Fox",species:"Fox",emoji:"🦊",ac:"A320",fact:"Foxes use Earth's magnetic field like a compass when hunting under snow. They are literally using the planet as a navigation tool. The planet just lets them do this."},
+  "N232FR":{name:"Sammy the Squirrel",species:"Squirrel",emoji:"🐿️",ac:"A320",fact:"Squirrels forget where they bury 74% of their nuts — accidentally planting thousands of trees. They are the world's most incompetent foresters and also the world's most prolific foresters. Unhinged duality."},
+  "N233FR":{name:"Buck the Pronghorn",species:"Pronghorn",emoji:"🦌",ac:"A320",fact:"Pronghorns evolved to escape cheetahs that went extinct 10,000 years ago. They are still running from a ghost. The cheetah is gone. The pronghorn does not know this. It will never stop."},
+  "N236FR":{name:"Marty the Marmot",species:"Marmot",emoji:"🐭",ac:"A320",fact:"Marmots whistle to warn their colony of predators with different calls for different threat types. They invented a threat classification system before humans did. FEMA should be taking notes."},
+  "N238FR":{name:"Hugh the Manatee",species:"Manatee",emoji:"🦭",ac:"A320",fact:"Manatees are more closely related to elephants than any marine animal and they have toenails on their flippers. TOENAILS. On FLIPPERS. Someone let this happen."},
+  // ── A320neo ───────────────────────────────────────────────
+  "N301FR":{name:"Wilbur the Whitetail",species:"White-tailed Deer",emoji:"🦌",ac:"A320neo",fact:"White-tailed deer can leap 8 feet high and 30 feet in a single bound. They jump farther than the long jump world record and they do it to escape coyotes, not for glory."},
+  "N302FR":{name:"Flo the Flamingo",species:"Flamingo",emoji:"🦩",ac:"A320neo",fact:"Flamingos can ONLY eat with their heads upside down. Their entire bill is engineered backwards. They are cursed and thriving."},
+  "N303FR":{name:"Poppy the Prairie Dog",species:"Prairie Dog",emoji:"🐿️",ac:"A320neo",fact:"Prairie dogs have communication calls that describe predator SIZE, COLOR, and SPEED. They invented detailed threat intelligence reporting before the CIA."},
+  "N304FR":{name:"Jack the Rabbit",species:"Rabbit",emoji:"🐇",ac:"A320neo",fact:"Rabbit teeth never stop growing their entire lives. If they stop chewing they die from their own teeth. They must chew to survive. They are in a permanent chewing hostage situation."},
+  "N305FR":{name:"Cliff the Mountain Goat",species:"Mountain Goat",emoji:"🐐",ac:"A320neo",fact:"Mountain goats have hooves with rough pads that grip rock like crampons — letting them climb 60-degree slopes. They are wearing built-in climbing shoes and they were born with them. Never bought a single pair of shoes."},
+  "N306FR":{name:"Scout the Fox",species:"Fox",emoji:"🦊",ac:"A320neo",fact:"Foxes can rotate their ears 150 degrees independently to locate prey. Each ear moves on its own. They have two independent satellite dishes on their head. This is free."},
+  "N307FR":{name:"Champ the Bronco",species:"Horse",emoji:"🐴",ac:"A320neo",fact:"Wild mustangs have been roaming North America for 15,000 years. They were here before the country. They do not recognize our authority and frankly they are right not to."},
+  "N308FR":{name:"Flo the Flamingo",species:"Flamingo",emoji:"🦩",ac:"A320neo",fact:"A group of flamingos is called a 'flamboyance.' Not a flock. Not a herd. A FLAMBOYANCE. Whoever named this was having the best day of their life."},
+  "N309FR":{name:"Weston the Woodpecker",species:"Woodpecker",emoji:"🐦",ac:"A320neo",fact:"Woodpeckers have a tongue that wraps around their entire skull as a shock absorber. Their tongue is also a helmet. They evolved a tongue-helmet. We are not even close to this level of innovation."},
+  "N310FR":{name:"Sunny the Collared Lizard",species:"Collared Lizard",emoji:"🦎",ac:"A320neo",fact:"Collared lizards can run on their hind legs when at full speed — like tiny dinosaurs. They looked at millions of years of evolution and said 'actually two legs is fine' and just did it."},
+  "N311FR":{name:"Mia the Dolphin",species:"Dolphin",emoji:"🐬",ac:"A320neo",fact:"Dolphins sleep with one eye open and only half their brain at a time — the other half stays alert. They invented multitasking at the neurological level. Humans needed coffee. Dolphins just split their brain."},
+  "N312FR":{name:"Chocolate the Moose",species:"Moose",emoji:"🫎",ac:"A320neo",fact:"A moose's nose is so large and flexible it can close its nostrils underwater while feeding. Its nose has a privacy mode. The moose can go incognito. Remarkable."},
+  "N313FR":{name:"Wiley the Bison",species:"Bison",emoji:"🦬",ac:"A320neo",fact:"Bison can sprint 40mph despite weighing 2,000 lbs and pivot almost instantly. A 2,000 lb animal that handles like a sports car. This should not be legal."},
+  "N314FR":{name:"Levi the Longhorn",species:"Longhorn",emoji:"🐄",ac:"A320neo",fact:"Texas Longhorns can have horn spans exceeding 7 feet tip to tip and they never stop growing. They are continuously becoming more horned. Every day: more horn. There is no ceiling."},
+  "N315FR":{name:"Dusty the Roadrunner",species:"Roadrunner",emoji:"🐦",ac:"A320neo",fact:"Roadrunners can run 20mph and only fly to escape immediate danger. They looked at the whole flying thing and said 'nah, running is fine' and just kept running. Respect."},
+  "N316FR":{name:"Shelly the Sea Turtle",species:"Sea Turtle",emoji:"🐢",ac:"A320neo",fact:"Sea turtles return to the exact beach where they were born to lay eggs using Earth's magnetic field. They remember their home from birth and cross entire oceans to get back. You cannot remember where you put your keys."},
+  "N317FR":{name:"Georgia the Painted Bunting",species:"Painted Bunting",emoji:"🐦",ac:"A320neo",fact:"Male Painted Buntings are so colorful they're called 'nonpareil' — French for 'without equal.' Some bird was so pretty that humans had to invent a new word. The bird remains unbothered."},
+  "N318FR":{name:"Flower the Hummingbird",species:"Hummingbird",emoji:"🐦",ac:"A320neo",fact:"Hummingbirds have the fastest heart rate of any warm-blooded animal at over 1,200 beats per minute. Their heart is absolutely losing its mind at all times. They seem fine."},
+  "N319FR":{name:"Domino the Deer Fawn",species:"Deer Fawn",emoji:"🦌",ac:"A320neo",fact:"Deer fawns are born with zero scent for their first weeks of life. They are undetectable. Completely off the grid. Nature gave them a built-in cloaking device at birth."},
+  "N320FR":{name:"Frisco the Fox",species:"Fox",emoji:"🦊",ac:"A320neo",fact:"Red foxes can hear a mouse squeak from 100 meters away and rotate each ear independently. They are basically a radar array that also looks cute. Unfair combination."},
+  "N321FR":{name:"Nico the Bison",species:"Bison",emoji:"🦬",ac:"A320neo",fact:"American bison once numbered 60 million across North America. They were hunted to fewer than 1,000 by 1889. They came back. The bison said no thank you to extinction and meant it."},
+  "N322FR":{name:"Captain the Puffin",species:"Puffin",emoji:"🐦‍⬛",ac:"A320neo",fact:"Puffins flap their wings up to 400 times per minute. They are VIBRATING through the air. They are not flying so much as they are vibing at a frequency that creates lift. Incredible."},
+  "N323FR":{name:"Colorado the Bighorn Sheep",species:"Bighorn Sheep",emoji:"🐏",ac:"A320neo",fact:"Bighorn sheep balance on ledges 2 inches wide. Their split hooves spread apart and grip rock like a clamp. They are mountain parkour artists and they act like this is normal."},
+  "N324FR":{name:"Summer the Swan",species:"Swan",emoji:"🦢",ac:"A320neo",fact:"Swans mate for life and losing a partner can cause them to die of what vets call 'grieving.' Swans invented dying of a broken heart. Swans are incredibly dramatic and we respect it."},
+  "N325FR":{name:"Riley the Red-tailed Hawk",species:"Red-tailed Hawk",emoji:"🦅",ac:"A320neo",fact:"Red-tailed hawks have vision 8x sharper than humans and can spot a mouse from 100 feet. You cannot read a sign from 20 feet away without your glasses. The hawk does not need glasses."},
+  "N326FR":{name:"Skye the Blue Jay",species:"Blue Jay",emoji:"🐦",ac:"A320neo",fact:"Blue Jays perfectly imitate the call of a Red-tailed Hawk to scare other birds away from food. They commit bird fraud daily. They do this confidently and with no remorse. Respect."},
+  "N327FR":{name:"Cactus the Coyote",species:"Coyote",emoji:"🐺",ac:"A320neo",fact:"Coyotes expanded their range as wolves disappeared and now live in every US state including Hawaii. They are the most geographically aggressive animal in North America. They saw your city and said 'this works for us.'"},
+  "N328FR":{name:"Scout the Pine Marten",species:"Pine Marten",emoji:"🦡",ac:"A320neo",fact:"Pine Martens can run along the tops of branches at full speed and leap between trees. They treat the forest canopy like a highway system. The trees never consented to this."},
+  "N329FR":{name:"Trixie the Fox",species:"Fox",emoji:"🦊",ac:"A320neo",fact:"Foxes are most accurate when pouncing to the northeast due to Earth's magnetic field. They have a PREFERRED CARDINAL DIRECTION for hunting. Northeast only. The southeast misses are a statistical fact."},
+  "N330FR":{name:"Junior the Lynx",species:"Lynx",emoji:"🐱",ac:"A320neo",fact:"Lynx have paws that spread to 4 inches wide — letting them walk on top of 3 feet of snow. They have natural snowshoes. They were born with snowshoes. They never once had to buy snowshoes."},
+  "N331FR":{name:"Choo the Pika",species:"Pika",emoji:"🐭",ac:"A320neo",fact:"Pikas spend all summer building haystacks that can weigh over 60 lbs. They are tiny. They are making haystacks that weigh more than a child. The pika is built different."},
+  "N332FR":{name:"Hazel the Chipmunk",species:"Chipmunk",emoji:"🐿️",ac:"A320neo",fact:"Chipmunks can carry 9 nuts in their cheek pouches — which expand to 3x the size of their head. Their HEAD expands. The chipmunk becomes mostly cheek. This is fine. The chipmunk is thriving."},
+  "N333FR":{name:"Oakley the Owl",species:"Owl",emoji:"🦉",ac:"A320neo",fact:"Owls can rotate their heads 270 degrees because they have 14 neck vertebrae. Humans have 7. Owls have twice the neck. They are winning neck vertebrae and what are we doing."},
+  "N334FR":{name:"Stretch the Great Blue Heron",species:"Great Blue Heron",emoji:"🦤",ac:"A320neo",fact:"Great Blue Herons have feathers that continually grow into powder they use to clean fish slime off themselves. They make their own dry shampoo. From their own body. Every day."},
+  "N335FR":{name:"Jo Jo the Grizzly Bear",species:"Grizzly Bear",emoji:"🐻",ac:"A320neo",fact:"Grizzly bears can gain 3 lbs of fat PER DAY before hibernation — eating 20,000 calories daily. That's 40 Big Macs a day. The bear is doing this naturally. With no grill."},
+  "N336FR":{name:"Rosie the River Otter",species:"River Otter",emoji:"🦦",ac:"A320neo",fact:"River otters can hold their breath for 8 minutes and close their ears and nose underwater. They have multiple body parts that have an off switch. The otter can selectively disable itself."},
+  "N337FR":{name:"Hunter the Bobcat",species:"Bobcat",emoji:"🐆",ac:"A320neo",fact:"Bobcats have feet so large they can walk on deep snow without sinking. They are twice the size of house cats and they have snowshoes AND they are also a cat. Peak combination."},
+  "N338FR":{name:"North the Harp Seal",species:"Harp Seal",emoji:"🦭",ac:"A320neo",fact:"Harp seal pups are born white to camouflage against arctic snow. They are invisible at birth. They enter the world already wearing their disguise. The seal came in tactical."},
+  "N339FR":{name:"Eccles the Ermine",species:"Ermine",emoji:"🐭",ac:"A320neo",fact:"Ermines turn pure white in winter and in the Middle Ages only ROYALTY could wear their fur. A small weasel accidentally became a status symbol. The ermine had no agenda. It just changed colors."},
+  "N340FR":{name:"Mesa the Pronghorn",species:"Pronghorn",emoji:"🦌",ac:"A320neo",fact:"Pronghorns have no close living relatives — all their relatives went extinct 10,000 years ago. The pronghorn is the sole survivor of its entire family. It is still running. It will always be running."},
+  "N341FR":{name:"Fran the Sea Lion",species:"Sea Lion",emoji:"🦭",ac:"A320neo",fact:"Sea lions are the only pinnipeds that can walk on all four flippers — true seals just belly-flop on land. Sea lions looked at seals wiggling around and said 'we can do better than this' and they were right."},
+  "N342FR":{name:"Baja the Whale Shark",species:"Whale Shark",emoji:"🦈",ac:"A320neo",fact:"Whale sharks filter 600,000 gallons of water per hour for plankton. They are the size of a school bus eating something you need a microscope to see. The scale of this operation is unhinged."},
+  "N343FR":{name:"Meadow & West the Horses",species:"Horses",emoji:"🐴",ac:"A320neo",fact:"Horses sleep standing up because they can lock their legs — allowing them to flee predators instantly. They are always half-ready to run. Even while unconscious. The horse is in a permanent state of mild alertness."},
+  "N344FR":{name:"Ed, Edwin & Eddie the Penguins",species:"Penguins",emoji:"🐧",ac:"A320neo",fact:"Penguins propose with pebbles — male Gentoos search beaches for the perfect stone to give their chosen mate. They walk around an entire beach looking for The Pebble. They take this very seriously."},
+  "N345FR":{name:"Biscuit the Prairie Dog",species:"Prairie Dog",emoji:"🐿️",ac:"A320neo",fact:"A single prairie dog colony once covered 25,000 square miles in Texas. That's bigger than West Virginia. One colony. Of prairie dogs. They briefly controlled more territory than most US states."},
+  "N346FR":{name:"Al the Roadrunner",species:"Roadrunner",emoji:"🐦",ac:"A320neo",fact:"Roadrunners kill rattlesnakes by grabbing them behind the head and slamming them against the ground repeatedly. The roadrunner, that silly little cartoon bird, is actually a serial snake assassin. Incredible."},
+  "N347FR":{name:"Lone Star the Longhorn Steer",species:"Longhorn Steer",emoji:"🐄",ac:"A320neo",fact:"A single cattle drive could involve 2,500 to 3,000 longhorn cattle. That is thousands of 7-foot horns moving in one direction. The ground shook. You could smell it from miles away."},
+  "N348FR":{name:"Clover the Deer Fawn",species:"Deer Fawn",emoji:"🦌",ac:"A320neo",fact:"Deer fawns have no scent for their first few days and can walk within hours of birth. They are born running and odorless. Peak survival package. Humans need YEARS to walk and we smell immediately."},
+  "N349FR":{name:"Hops the Rabbit",species:"Rabbit",emoji:"🐇",ac:"A320neo",fact:"Rabbits have eyes positioned to give them nearly 360-degree vision. They can see almost everything around them except directly in front of their nose. They are blind in one spot and it's their own face."},
+  "N350FR":{name:"Miracle the Seagull",species:"Seagull",emoji:"🕊️",ac:"A320neo",fact:"Seagulls drink salt water because they have glands above their eyes that desalinate it. They have a built-in water purifier in their face. It is installed above their eyes like goggles made of science."},
+  "N351FR":{name:"Joey the Opossum",species:"Opossum",emoji:"🐀",ac:"A320neo",fact:"Opossums are immune to most snake venom — scientists are studying their blood as an antidote. The opossum was sitting on an antidote this whole time and nobody asked. We were not looking in the right place."},
+  "N352FR":{name:"Rio the Jaguarundi",species:"Jaguarundi",emoji:"🐱",ac:"A320neo",fact:"Jaguarundis make over 13 different vocalizations including purrs, chirps, and whistles. They are small cats with the communication range of an entire jazz band. The jaguarundi said 'I will use all the sounds.'"},
+  "N353FR":{name:"Blanco the Polar Bear",species:"Polar Bear",emoji:"🐻‍❄️",ac:"A320neo",fact:"Polar bears have BLACK skin under white fur, and their fur is actually transparent — it just LOOKS white. The polar bear has been lying about its color this entire time. All white fur is a collective hallucination."},
+  "N354FR":{name:"Scarlet the Tanager",species:"Scarlet Tanager",emoji:"🐦",ac:"A320neo",fact:"Scarlet Tanagers migrate up to 3,000 miles each way between North America and South America. They do this twice a year. They have flown the equivalent of circumnavigating the Earth multiple times over their lifetime."},
+  "N355FR":{name:"Perry the Pelican",species:"Pelican",emoji:"🐦",ac:"A320neo",fact:"Brown pelicans dive from 65 feet hitting the water at 40mph — with built-in air sacs cushioning the impact. They invented airbags in their own body because they knew they were going to crash. Proactive engineering."},
+  "N356FR":{name:"O'Malley the Mallard Duck",species:"Mallard Duck",emoji:"🦆",ac:"A320neo",fact:"The iconic loud QUACK sound is always female — male mallards make a raspy quieter sound. Every duck impression you've ever done was a female duck impression. Your dad's duck impression was a girl duck. This is canon now."},
+  "N357FR":{name:"Cali the Black Bear",species:"Black Bear",emoji:"🐻",ac:"A320neo",fact:"Black bears number over 900,000 in North America — the most common bear in the world. They are not rare. They are everywhere. They are near you right now statistically. This is fine."},
+  "N358FR":{name:"Ichabod the Whooping Crane",species:"Whooping Crane",emoji:"🦢",ac:"A320neo",fact:"Whooping Cranes were down to just 15 birds in 1941. FIFTEEN. The entire species fit in one school bus. Today nearly 900 exist. The whooping crane refused to go extinct and made it personal."},
+  "N359FR":{name:"Cookie the Oriole",species:"Oriole",emoji:"🐦",ac:"A320neo",fact:"Baltimore Orioles weave hanging basket nests so tightly they can withstand a person's weight without tearing. A bird that weighs 1 oz builds a structure that holds 200 lbs. The oriole is a structural engineer."},
+  "N360FR":{name:"Ruby the Reindeer",species:"Reindeer",emoji:"🦌",ac:"A320neo",fact:"Reindeer eyes change color from gold in summer to blue in winter. Their eyes are literally seasonal. They are wearing winter eye contact lenses that they grew themselves."},
+  "N361FR":{name:"Ranger the Red Fox",species:"Red Fox",emoji:"🦊",ac:"A320neo",fact:"Red foxes use magnetic field calculations to determine the perfect pounce angle. They are doing physics. In real time. Before every jump. The fox is a natural-born ballistics calculator."},
+  "N362FR":{name:"Buster the Bison",species:"Bison",emoji:"🦬",ac:"A320neo",fact:"Bison calves are called 'red dogs' because they're born reddish. A 2,000 lb animal has a phase where it is called a red dog. The red dog phase lasts a few months. Then it becomes a bison. It was always going to become a bison."},
+  "N363FR":{name:"Ward the Beaver",species:"Beaver",emoji:"🦫",ac:"A320neo",fact:"Beavers' teeth contain iron which makes them orange and extra hard — they can fell a 5-inch tree in 3 minutes. Their orange teeth are orange because of IRON. The beaver is part machine. The iron was free."},
+  "N364FR":{name:"Tex the Armadillo",species:"Armadillo",emoji:"🐾",ac:"A320neo",fact:"Armadillos always give birth to identical quadruplets from a single egg. Every single time. Always four. Always identical. The armadillo found a system and it commits."},
+  "N365FR":{name:"Sunny the Pelican",species:"Brown Pelican",emoji:"🐦",ac:"A320neo",fact:"Brown pelicans are the ONLY pelicans that plunge-dive for fish — all others scoop while swimming. The brown pelican looked at the other pelicans scooping fish and said 'that's not dramatic enough' and invented diving."},
+  "N366FR":{name:"Chip the Chipmunk",species:"Chipmunk",emoji:"🐿️",ac:"A320neo",fact:"Chipmunks have different alarm calls for aerial vs ground predators. They have a two-tier threat alert system. They classified their threats and made different sounds for each. This is more sophisticated than most offices."},
+  "N367FR":{name:"Drake the Mallard",species:"Mallard Duck",emoji:"🦆",ac:"A320neo",fact:"The quintessential LOUD duck QUACK is always female. The male makes a raspy quiet sound. Ducks have been misrepresented in cartoons for 90 years. The male duck deserves better media coverage."},
+  "N368FR":{name:"Cortez the Green Turtle",species:"Green Sea Turtle",emoji:"🐢",ac:"A320neo",fact:"Green sea turtles can hold their breath for 7 hours while sleeping on the ocean floor. They go to sleep underwater for SEVEN HOURS and they are fine. The sea turtle sleeps deeper than you ever will."},
+  "N369FR":{name:"Chinook the Gray Wolf",species:"Gray Wolf",emoji:"🐺",ac:"A320neo",fact:"Gray wolves can travel up to 125 miles in a single day when tracking prey. Their paws are designed for long-distance running. They are doing ultramarathons every time they're hungry. No registration required."},
+  "N370FR":{name:"Elrey the Elk",species:"Elk",emoji:"🫎",ac:"A320neo",fact:"Bull elk bugling during mating season can be heard for MILES — rivals respond across entire mountain valleys. They are shouting across mountains about romance. The mountains are full of extremely loud elk feelings."},
+  "N371FR":{name:"Parish & Daisy the Burrowing Owls",species:"Burrowing Owls",emoji:"🦉",ac:"A320neo",fact:"Burrowing Owls line their burrows with animal dung to attract dung beetles — their favorite snack. They use poop as bait. The owl invented a trap that involves dung, and it works every time. Respect."},
+  "N372FR":{name:"Diego the Iguana",species:"Iguana",emoji:"🦎",ac:"A320neo",fact:"Key Deer are a miniature subspecies found only in the Florida Keys — adults stand just 24 inches tall. A full-grown deer the size of a large dog. It is a deer that fits in your apartment. Do not put a deer in your apartment."},
+  "N372FR":{name:"Watson the Key Deer",species:"Key Deer",emoji:"🦌",ac:"A320neo",fact:"Key Deer are a miniature subspecies found only in the Florida Keys — adults stand just 24 inches tall. A full-grown deer the size of a large dog. It is a deer that fits in your apartment. Do not put a deer in your apartment."},
+  "N373FR":{name:"Francie the Piping Plover",species:"Piping Plover",emoji:"🐦",ac:"A320neo",fact:"Piping Plovers fake a broken wing to lure predators away from their nest. They commit to a full acting performance including dragging a wing across the ground. The piping plover is running a long con."},
+  "N374FR":{name:"Sierra the Mountain Lion",species:"Mountain Lion",emoji:"🐱",ac:"A320neo",fact:"Mountain lions have the largest range of any land mammal in the Western Hemisphere — from Canada to South America. They claimed an entire hemisphere. They did not ask. They just moved in. We share this hemisphere with mountain lions."},
+  "N375FR":{name:"Blaze the Fox",species:"Fox",emoji:"🦊",ac:"A320neo",fact:"Arctic foxes survive -94°F with multilayered fur — the warmest of any mammal. -94°F is colder than Mars. The arctic fox is wearing a jacket rated for a different planet and doing fine."},
+  "N376FR":{name:"Maverick the Mustang",species:"Mustang",emoji:"🐴",ac:"A320neo",fact:"Mustangs can run up to 55mph and travel 25-35 miles per day with hooves that never need shoes. They are running constantly with completely bare feet and their feet are fine. Your feet are not fine."},
+  "N377FR":{name:"Odell the Lynx",species:"Lynx",emoji:"🐱",ac:"A320neo",fact:"Lynx paws spread to 4 inches wide — they can walk on 3 feet of snow without sinking. They were born with snowshoes. Have never once purchased any winter gear. Living rent-free on top of the snow."},
+  "N378FR":{name:"Lewis the Greater Sage-Grouse",species:"Greater Sage-Grouse",emoji:"🐦",ac:"A320neo",fact:"Greater Sage-Grouse inflate bright YELLOW air sacs on their chest to make popping sounds during mating dances. They have inflatable chest accessories. For dancing. That make noise. The sage-grouse went all out."},
+  "N379FR":{name:"Hudson the Bog Turtle",species:"Bog Turtle",emoji:"🐢",ac:"A320neo",fact:"Bog Turtles are North America's smallest turtle at 4 inches long — and one of the most endangered. They are tiny and they are on the brink and yet they persist. The bog turtle is 4 inches of pure determination."},
+  "N380FR":{name:"Zara the Zebra",species:"Zebra",emoji:"🦓",ac:"A320neo",fact:"No two zebras have the same stripe pattern — they're as unique as fingerprints. The zebra is the only animal that comes with a built-in serial number. You could identify a specific zebra from a database. The zebra did not consent to this."},
+  "N381FR":{name:"Skye the Hawk",species:"Hawk",emoji:"🦅",ac:"A320neo",fact:"Hawks can spot a mouse from 100 feet in the air with vision 8x sharper than humans AND can see ultraviolet light to track rodent urine trails. They are hunting in a spectrum of light we cannot see. The mouse is in the infrared. The hawk knows."},
+  "N382FR":{name:"Sonny the Lemon Shark",species:"Lemon Shark",emoji:"🦈",ac:"A320neo",fact:"Lemon sharks return to the exact shallow waters where they were born to give birth. Every lemon shark goes back to where it came from. They are the most consistent travelers alive. Same beach. Every time."},
+  "N383FR":{name:"Finn the Arctic Fox",species:"Arctic Fox",emoji:"🦊",ac:"A320neo",fact:"Arctic foxes can hear and locate prey under 30 inches of snow and then leap STRAIGHT THROUGH the snowpack. They jump into solid snow and come out holding a mouse. The snow is not an obstacle. The snow is just a door."},
+  "N384FR":{name:"Briar the Cottontail",species:"Cottontail Rabbit",emoji:"🐇",ac:"A320neo",fact:"Cottontail rabbits sprint in a zigzag pattern at 18mph changing direction every few feet. They are executing random evasive maneuvers at 18mph. A rabbit is a biological chaos machine."},
+  "N385FR":{name:"Buddy the Black Bear",species:"Black Bear",emoji:"🐻",ac:"A320neo",fact:"Black bears run at 35mph — faster than Olympic sprinters — and climb trees faster than most humans can run. They are faster than the fastest humans both on the ground AND vertically. They out-sprint us in every dimension."},
+  "N386FR":{name:"Rio the Macaw",species:"Macaw",emoji:"🦜",ac:"A320neo",fact:"Scarlet Macaws spend up to 90% of their time in physical contact with their partner. 90%. They are together 90% of the time. They are each other's entire world. If macaws used phones they would share one plan."},
+  "N387FR":{name:"Nemo the Clownfish",species:"Clownfish",emoji:"🐠",ac:"A320neo",fact:"Clownfish are all born male — the largest fish becomes female if the female dies. The whole colony reorganizes based on one fish's decision. Gender is a matter of group logistics for the clownfish."},
+  "N388FR":{name:"Luna the Firefly",species:"Firefly",emoji:"✨",ac:"A320neo",fact:"Fireflies produce nearly 100% efficient light with almost zero heat wasted. Thomas Edison's bulbs were 5% efficient. The firefly did it better in 1800. The firefly has been embarrassing us ever since."},
+  "N389FR":{name:"Comet the Pronghorn",species:"Pronghorn",emoji:"🦌",ac:"A320neo",fact:"Pronghorns evolved 55mph speed to escape American cheetahs that went extinct 10,000 years ago. The threat is gone. The pronghorn is still going 55mph. It is sprinting from a ghost. It will never stop."},
+  "N390FR":{name:"Meadow the Butterfly",species:"Butterfly",emoji:"🦋",ac:"A320neo",fact:"Butterflies taste with their FEET — they know if something is edible just by standing on it. Every step is a meal assessment. The butterfly has turned walking into dining. The floor is always the menu."},
+  "N391FR":{name:"Ranger the Bison",species:"Bison",emoji:"🦬",ac:"A320neo",fact:"Early European explorers thought they were seeing the ground itself moving when they saw bison herds on the horizon. 60 million animals moving together looked like the Earth was alive. The Earth was alive. With bison."},
+  "N392FR":{name:"Dingo the Coyote",species:"Coyote",emoji:"🐺",ac:"A320neo",fact:"Coyotes have expanded into every US state including Hawaii and every Canadian province. They saw Hawaii and said 'yes, us too.' They crossed an ocean. For territory. The coyote has no limits."},
+  "N393FR":{name:"Dash the Cheetah",species:"Cheetah",emoji:"🐆",ac:"A320neo",fact:"Cheetahs accelerate 0 to 60mph in 3 seconds but can only sustain it for 30 seconds. They are a sports car with a 30-second battery. After that they have to sit down. The cheetah is extremely fast and also extremely out of breath."},
+  "N394FR":{name:"Rivero the Puerto Rican Crested Toad",species:"Puerto Rican Crested Toad",emoji:"🐸",ac:"A320neo",fact:"Puerto Rican Crested Toads have fewer than 2,000 left in the wild. Every single one matters. This plane is helping raise awareness. The toad is riding in the sky in the form of a graphic to save its species. This is fine art."},
+  "N395FR":{name:"Sage the Pygmy Rabbit",species:"Pygmy Rabbit",emoji:"🐇",ac:"A320neo",fact:"Pygmy rabbits are North America's smallest rabbit at 10 inches and the ONLY rabbits that dig their own burrows. They are tiny. They built their own home. They do everything themselves. The pygmy rabbit is a 10-inch homeowner."},
+  "N396FR":{name:"Coral the Seahorse",species:"Seahorse",emoji:"🐠",ac:"A320neo",fact:"Seahorses are the only animal where the MALE gets pregnant and carries up to 2,000 babies. 2,000. At once. Inside the dad. The male seahorse is carrying a small city. This is considered normal."},
+  "N397FR":{name:"Axl the Axolotl",species:"Axolotl",emoji:"🦎",ac:"A320neo",fact:"Axolotls can regenerate their heart, brain, spinal cord, and limbs. They can regrow their BRAIN. While using their brain. They can repair the thing that is doing the repairing. This breaks logic."},
+  "N398FR":{name:"Manuel the Squirrel Monkey",species:"Squirrel Monkey",emoji:"🐒",ac:"A320neo",fact:"Squirrel monkeys have the largest brain relative to body size of any primate — including humans. A monkey the size of a squirrel has proportionally more brain than you. The squirrel monkey is smarter per pound. We are outclassed."},
+  "N399FR":{name:"Leaf the Morelet's Tree Frog",species:"Morelet's Tree Frog",emoji:"🐸",ac:"A320neo",fact:"Morelet's Tree Frogs change color based on temperature and mood — they're basically living mood rings. The frog's emotional state is visible. You can see when the frog is upset. The frog cannot hide its feelings. The frog is transparent."},
+  // ── N4xxFR A320neo (newer deliveries) ─────────────────────
+  "N400FR":{name:"Storm the Bald Eagle",species:"Bald Eagle",emoji:"🦅",ac:"A320neo",fact:"Bald Eagles build the largest bird nests in North America — some weigh over 2 tons after years of additions. They keep adding to the same nest for years. The nest becomes a structure. The nest eventually outweighs the eagle by 4,000 times."},
+  "N401FR":{name:"Coco the Parrot",species:"Parrot",emoji:"🦜",ac:"A320neo",fact:"Some parrots can learn over 1,000 words. A parrot knows more vocabulary than many adults use in daily conversation. The parrot is not even trying. It is just collecting words. Words are free. The parrot knows this."},
+  "N402FR":{name:"Sandy the Sea Turtle",species:"Sea Turtle",emoji:"🐢",ac:"A320neo",fact:"Sea turtles have an internal compass using Earth's magnetic field and return to their exact birth beach. They navigate an entire ocean using the planet's magnetic field like it's GPS. Their GPS has no subscription fee. It is the Earth."},
+  "N403FR":{name:"Blaze the Cheetah",species:"Cheetah",emoji:"🐆",ac:"A320neo",fact:"Cheetahs accelerate faster than a Porsche but can only run for 30 seconds before overheating. They are the world's fastest animal with the world's worst stamina. The cheetah is a sprint specialist and nothing else."},
+  "N404FR":{name:"Pebbles the Penguin",species:"Penguin",emoji:"🐧",ac:"A320neo",fact:"Penguins walk up to 50 miles to reach their breeding grounds. They cannot fly. They walk. 50 miles. On little penguin legs. Through Antarctica. And they do it every year. The penguin has unbelievable commitment."},
+  "N405FR":{name:"Arrow the Red Fox",species:"Red Fox",emoji:"🦊",ac:"A320neo",fact:"Red foxes can hear a mouse squeak from 100 meters and rotate each ear independently. Two independent satellite dishes on their head pointed at different mouse sounds simultaneously. The fox is always monitoring multiple channels."},
+  "N406FR":{name:"Luna the Wolf",species:"Wolf",emoji:"🐺",ac:"A320neo",fact:"Wolves in a pack howl in harmony — each wolf sings a different note and adjusts pitch if two wolves match. They have natural chord awareness. They avoid dissonance instinctively. Wolves are better at music theory than most musicians."},
+  "N407FR":{name:"Bubbles the Dolphin",species:"Dolphin",emoji:"🐬",ac:"A320neo",fact:"Dolphins sleep with one eye open and half their brain active. The other half is offline. They invented split-screen mode. While unconscious. The dolphin is multitasking during unconsciousness."},
+  "N408FR":{name:"Rocky the Mountain Goat",species:"Mountain Goat",emoji:"🐐",ac:"A320neo",fact:"Mountain goats can climb 60-degree slopes using hooves with built-in grip pads like crampons they were born with. They have never once purchased climbing equipment. The mountain is just a floor to them."},
+  "N409FR":{name:"Willow the Deer",species:"Deer",emoji:"🦌",ac:"A320neo",fact:"White-tailed deer can leap 30 feet in a single bound — twice the length of the men's long jump world record. The deer does this to escape coyotes, not for a gold medal. It does it better than gold medalists."},
+  "N410FR":{name:"Pepper the Skunk",species:"Skunk",emoji:"🦨",ac:"A320neo",fact:"Skunks do a full performance before spraying — stomping, hissing, and doing a handstand — to give you plenty of warning. The skunk is giving you every opportunity to leave. The skunk does not want to spray you. Please respect the handstand."},
+  "N411FR":{name:"Jade the Iguana",species:"Iguana",emoji:"🦎",ac:"A320neo",fact:"Iguanas can hold their breath for 28 minutes AND drop their tail to escape predators. They have two escape strategies: disappear underwater OR detach a body part. The iguana came prepared."},
+  "N412FR":{name:"Stella the Starfish",species:"Starfish",emoji:"⭐",ac:"A320neo",fact:"Starfish have no brain, no blood, and pump seawater through their body to move. They use ocean water as their circulatory system. The ocean is inside the starfish. The starfish is part ocean."},
+  "N413FR":{name:"Adams the Green Salamander",species:"Green Salamander",emoji:"🦎",ac:"A320neo",fact:"Green salamanders walk up glass using microscopic adhesive toe pads — like Spider-Man but smaller and more realistic and also a salamander."},
+  "N439FR":{name:"Yoro the Honduran Emerald",species:"Honduran Emerald Hummingbird",emoji:"🐦",ac:"A320neo",fact:"The Honduran Emerald hummingbird is found only in one tiny dry forest valley in Honduras. The entire global population of this species fits in an area smaller than some airports. This plane has more range than its habitat."},
+  // ── A321 ceo ──────────────────────────────────────────────
+  "N701FR":{name:"Otto the Owl",species:"Owl",emoji:"🦉",ac:"A321",fact:"Owls rotate their heads 270 degrees because they have 14 neck vertebrae. We have 7. Owls have twice the neck. The owl spent extra evolutionary budget on neck and it paid off enormously."},
+  "N702FR":{name:"Courtney the Cougar",species:"Cougar",emoji:"🐱",ac:"A321",fact:"Cougars have the largest range of any land mammal in the Western Hemisphere — from Canada to South America. They claimed an entire hemisphere. No permit. No approval process. They just moved in."},
+  "N703FR":{name:"Roxie the Mountain Lion",species:"Mountain Lion",emoji:"🐱",ac:"A321",fact:"Mountain lions jump 18 feet vertically and 40 feet horizontally in a single leap. 40 feet. Horizontally. In ONE jump. The mountain lion's single leap covers the length of a school bus."},
+  "N704FR":{name:"Virginia the Wolf",species:"Wolf",emoji:"🐺",ac:"A321",fact:"Wolves can travel up to 125 miles in a single day when tracking prey. They are doing a 5K every few hours, indefinitely, for food. The wolf is casually completing multiple marathons before you wake up."},
+  "N705FR":{name:"Ferndale the Pygmy Owl",species:"Pygmy Owl",emoji:"🦉",ac:"A321",fact:"Pygmy owls are so small they can be mistaken for sparrows — yet they hunt prey twice their size. A tiny bird that hunts animals twice its size. The pygmy owl has massive confidence relative to its wingspan."},
+  "N706FR":{name:"Max the Lynx",species:"Lynx",emoji:"🐱",ac:"A321",fact:"Lynx paws spread to 4 inches on snow. They walk on top of 3 feet of snow that other animals sink into. They were born with snowshoes. They have never sunk. Not once. The lynx has never sunk."},
+  "N707FR":{name:"Dusty the Coyote",species:"Coyote",emoji:"🐺",ac:"A321",fact:"Coyotes live in every US state including Hawaii. They crossed the Pacific. For territory. The coyote went to Hawaii and said 'this is mine now' and nobody stopped them."},
+  "N708FR":{name:"Joe Bob the Badger",species:"Badger",emoji:"🦡",ac:"A321",fact:"Badgers can bury a cow carcass in a few hours. They dig SO fast they can make an entire cow disappear. The badger is nature's cleanup crew and it is alarmingly efficient."},
+  "N709FR":{name:"Steve the Eagle",species:"Eagle",emoji:"🦅",ac:"A321",fact:"Eagles can see 4 to 5 times farther than humans and spot a rabbit from 2 miles away. 2 miles. The eagle sees the rabbit from 2 miles. The rabbit cannot see the eagle. The rabbit has no idea. The eagle always knows."},
+  "N710FR":{name:"Hector the Otter",species:"Sea Otter",emoji:"🦦",ac:"A321",fact:"Sea otters hold hands while sleeping so they don't drift apart. They hold hands. While unconscious. So they stay together. If you held hands while sleeping people would call that incredibly cute and they'd be right."},
+  "N711FR":{name:"Powder the Polar Bear",species:"Polar Bear",emoji:"🐻‍❄️",ac:"A321",fact:"Polar bears have black skin under white fur — and their fur is actually transparent. The polar bear has been in disguise its entire life. It is a black-skinned animal in a transparent coat that looks white. The polar bear is a masterpiece of visual deception."},
+  "N712FR":{name:"Spot the Jaguar",species:"Jaguar",emoji:"🐆",ac:"A321",fact:"Jaguars have the strongest bite of any big cat — enough to pierce turtle shells and caiman skulls. They bite through SKULLS. The jaguar bites through the skull of an armored reptile as a normal Tuesday activity."},
+  "N713FR":{name:"Mitch the Wolverine",species:"Wolverine",emoji:"🦡",ac:"A321",fact:"Wolverines drive grizzly bears off their kills. A 30 lb animal drives away a 600 lb bear. This is a 20-to-1 weight disadvantage. The wolverine simply does not care. The wolverine has chosen violence and commitment."},
+  "N714FR":{name:"Cubby the Bear",species:"Bear",emoji:"🐻",ac:"A321",fact:"Bears run 35mph AND climb trees faster than most humans run. They out-sprint you AND out-climb you simultaneously. There is no escape route that a bear cannot also use."},
+  "N715FR":{name:"Cactus the Coyote",species:"Coyote",emoji:"🐺",ac:"A321",fact:"Coyotes mate for life and both parents teach the pups to hunt. They are co-parenting predators with lifelong pair bonds. The coyote family is more committed than most human relationships statistically."},
+  "N716FR":{name:"Seymour the Walrus",species:"Walrus",emoji:"🦭",ac:"A321",fact:"Walruses slow their heart to near zero to survive freezing Arctic water. They can turn down their own heart rate. They have a volume knob on their heart. The walrus can adjust its own cardiac function."},
+  "N717FR":{name:"Luna and Lilly the Wolves",species:"Wolves",emoji:"🐺",ac:"A321",fact:"Each wolf has a unique voice that other wolves recognize. The pack knows who is howling without seeing them. Voice recognition. In wolves. Before smartphones. The wolves identified this technology first."},
+  "N718FR":{name:"Cali the Mountain Lion",species:"Mountain Lion",emoji:"🐱",ac:"A321",fact:"Mountain lions follow prey for miles without being detected — they're called the ghosts of the wilderness. Miles. Silently. You would never know. The mountain lion is behind you right now probably. You cannot hear it."},
+  "N719FR":{name:"Midnight the Wolf",species:"Wolf",emoji:"🐺",ac:"A321",fact:"Wolves smell prey from 2 miles away and hear sounds from 6 miles. They detected you before you knew they existed. The wolf has been tracking you since you were over the horizon."},
+  "N720FR":{name:"Crockett the Raccoon",species:"Raccoon",emoji:"🦝",ac:"A321",fact:"Raccoons have 4x more sensory cells in their front paws than most mammals — they can feel in complete darkness. Their hands feel 4x more than your hands. In the dark. The raccoon is reading your trash like braille."},
+  "N721FR":{name:"Cody and Dakota the Coyotes",species:"Coyotes",emoji:"🐺",ac:"A321",fact:"Coyote pups hunt on their own by 6 months. Human children are still being supervised around scissors. The coyote pup has been an independent hunter for months before your kid can safely use craft supplies."},
+  "N722FR":{name:"Xavier the Mountain Goat",species:"Mountain Goat",emoji:"🐐",ac:"A321",fact:"Mountain goats produce a glue-like hoof substance that grips even the smoothest rock faces. Their hooves make their own adhesive. They secrete grip. The goat is a biological rock-climbing shoe."},
+  "N723FR":{name:"Gordon the Golden Eagle",species:"Golden Eagle",emoji:"🦅",ac:"A321",fact:"Golden eagles have grip strength strong enough to break a person's arm. Their talons generate enough force to snap your arm like a branch. The golden eagle is equipped with arm-breaking feet and it goes about its day."},
+  "N724FR":{name:"Chopper the Great White Shark",species:"Great White Shark",emoji:"🦈",ac:"A321",fact:"Great white sharks detect one drop of blood in 25 gallons of water AND sense electrical fields from a mile away. They have two completely separate detection systems. Smell AND electricity. The shark is running two radars simultaneously."},
+  "N725FR":{name:"Maverick the Bald Eagle",species:"Bald Eagle",emoji:"🦅",ac:"A321",fact:"Bald Eagle populations grew from 417 nesting pairs in the 1960s to over 9,000 today. They came back from the edge. The bald eagle refused extinction so aggressively that it increased its population by 2,000%. The bald eagle is built to last."},
+  // ── A321neo ───────────────────────────────────────────────
+  "N601FR":{name:"Bark the Wolf",species:"Wolf",emoji:"🐺",ac:"A321neo",fact:"Wolves howl in harmony — each wolf takes a different note. If two wolves accidentally match, one changes pitch immediately. They self-correct in real time. Wolves cannot stand unintentional unison. They have standards."},
+  "N602FR":{name:"Dawn the Fox",species:"Fox",emoji:"🦊",ac:"A321neo",fact:"Foxes retract their claws like cats — the only canids that do this. They are secretly cats. They have been cats this whole time. The dog family has a cat in it and her name is fox."},
+  "N610FR":{name:"Knox the Bald Eagle",species:"Bald Eagle",emoji:"🦅",ac:"A321neo",fact:"Bald Eagles were down to 417 nesting pairs in the 1960s. Today there are over 9,000. The bald eagle looked at extinction and said 'absolutely not' and built 9,000 nests in defiance."},
+  "N614FR":{name:"Gale the Falcon",species:"Peregrine Falcon",emoji:"🦅",ac:"A321neo",fact:"Peregrine falcons stun prey mid-air with the SHOCKWAVE created by diving at 240mph before grabbing it. They kill with physics. The impact wave arrives before the falcon. The prey is already defeated before the falcon gets there."},
+  "N630FR":{name:"Stu the Stork",species:"Stork",emoji:"🦢",ac:"A321neo",fact:"Some stork nests are used for DECADES and weigh over a ton from additions. They are building a structure. Over decades. The stork nest becomes a monument to stork commitment."},
+  "N635FR":{name:"Hamber the California Condor",species:"California Condor",emoji:"🦅",ac:"A321neo",fact:"California condors have a 9.5-foot wingspan and can soar for hours without flapping. They find a thermal and they FLOAT. Just float. Zero effort. For hours. The condor has fully optimized its energy expenditure."},
+  "N636FR":{name:"Kit the Kermode Bear",species:"Kermode Bear",emoji:"🐻",ac:"A321neo",fact:"Kermode Bears (Spirit Bears) are white black bears — not albinos. Only about 10% of black bears in their range carry the gene. The white bear is not a polar bear. It is a black bear that won a recessive gene lottery. It is a black bear in a white coat."},
+  "N639FR":{name:"Axl the Axolotl",species:"Axolotl",emoji:"🦎",ac:"A321neo",fact:"Axolotls never metamorphose — they keep their juvenile form forever. They are permanent babies. Biologically, an axolotl never grows up. The axolotl is in a permanent Peter Pan situation and it seems completely content."},
+  "N640FR":{name:"Hugh the Manatee",species:"Manatee",emoji:"🦭",ac:"A321neo",fact:"Manatees eat 10-15% of their body weight in vegetation daily. A 1,000 lb manatee eats 150 lbs of plants per day. It is constantly eating. It is always eating. The manatee is a full-time eating machine shaped like a potato."},
+  "N642FR":{name:"Rook the Bison",species:"Bison",emoji:"🦬",ac:"A321neo",fact:"Bison nearly went extinct with fewer than 1,000 in 1889 — today over 500,000 exist. They came back from 1,000 individuals. That is a 500x population increase. The bison said no to extinction and meant it."},
+  "N646FR":{name:"Cedar the Florida Scrub Jay",species:"Florida Scrub Jay",emoji:"🐦",ac:"A321neo",fact:"Florida Scrub Jays are the ONLY bird found exclusively in Florida — and older siblings help raise younger ones. The Florida Scrub Jay invented family-assisted childcare. The older siblings help raise the young. They invented the village."},
+  "N650FR":{name:"Finn the Orca",species:"Orca",emoji:"🐋",ac:"A321neo",fact:"Orcas have distinct cultural traditions passed down through generations. Each orca pod has its own culture. Specific hunting techniques. Specific vocalizations. The orcas have civilization. We are sharing an ocean with a civilization."},
+  "N660FR":{name:"Flint the Wood Stork",species:"Wood Stork",emoji:"🦢",ac:"A321neo",fact:"Wood Storks are North America's only native stork species and were first listed as Endangered in 1984. They have been fighting for survival for 40 years. The wood stork is incredibly persistent. It is still here."},
+  "N662FR":{name:"Martillo the Bonnethead Shark",species:"Bonnethead Shark",emoji:"🦈",ac:"A321neo",fact:"Bonnethead sharks deliberately eat and digest seagrass as part of their regular diet. They are the only omnivorous shark. All other sharks: carnivores. The bonnethead: actually enjoys a salad. The bonnethead is built different."},
+  "N663FR":{name:"Falkner the Roseate Tern",species:"Roseate Tern",emoji:"🐦",ac:"A321neo",fact:"Roseate Terns fly 4,000+ miles from the US to Brazil every winter and 4,000 miles back. That is 8,000 miles annually. A bird that weighs 4 oz covers 8,000 miles per year. The roseate tern has more frequent flyer miles than you."},
+  "N664FR":{name:"Miguel & Lina the Island Foxes",species:"Island Foxes",emoji:"🦊",ac:"A321neo",fact:"Island foxes evolved into 6 distinct subspecies on 6 different Channel Islands — completely separately. One species. Six islands. Six evolutionary paths. The Channel Islands are running 6 simultaneous fox experiments."},
+  "N665FR":{name:"Georg the Steller Sea Lion",species:"Steller Sea Lion",emoji:"🦭",ac:"A321neo",fact:"Steller Sea Lions are the largest sea lions in the world — males weigh up to 2,500 lbs. A 2,500 lb sea lion is the size of a small car. It is a car-sized sea lion. It has whiskers. The car has whiskers."},
+  "N667FR":{name:"Clark W. the Grizzly Bear",species:"Grizzly Bear",emoji:"🐻",ac:"A321neo",fact:"Grizzly bears have a hump of pure muscle on their shoulders for digging up roots and flipping 700 lb boulders. They have a built-in boulder-flipping module. They were born with it. The hump is a boulder tool."},
+  "N668FR":{name:"Lupe the Fur Seal",species:"Fur Seal",emoji:"🦭",ac:"A321neo",fact:"Fur seals have fur so dense — up to 300,000 hairs per square inch — that water never reaches their skin. They have a waterproof coat built into their body. They have never felt wet water on their actual skin. Not once. In their entire life."},
+  "N670FR":{name:"Kevin the Gila Monster",species:"Gila Monster",emoji:"🦎",ac:"A321neo",fact:"Gila Monsters chew venom into their prey because they have no hollow fangs. They have to chew to deliver the venom. They must commit to the bite. They cannot do a quick sting and leave. The Gila Monster goes all in every time."},
+  "N672FR":{name:"Allie the Evening Grosbeak",species:"Evening Grosbeak",emoji:"🐦",ac:"A321neo",fact:"Evening Grosbeaks crack cherry pits requiring 165 lbs of force. Their beak generates 165 lbs of force. That is more bite force than many dogs. This bird has a stronger bite than your dog. Look at your dog. Then think about this bird."},
+  "N674FR":{name:"Peachy the Fox",species:"Fox",emoji:"🦊",ac:"A321neo",fact:"Foxes have whiskers on their LEGS as well as their face — used to feel vibrations through the ground. Their legs have whiskers. The fox has leg whiskers. They feel the ground with their leg whiskers. The fox is monitoring the substrate."},
+  "N677FR":{name:"Isla the Mona Ground Iguana",species:"Mona Ground Iguana",emoji:"🦎",ac:"A321neo",fact:"Mona Ground Iguanas are critically endangered with fewer than 1,000 left in the wild on one small island. This species has fewer individuals than a typical high school. Every single one of them matters enormously."},
+};
+
+// ── Cursor ─────────────────────────────────────────────────
+
+
+// ── Animal-specific puns ──────────────────────────────────
+const ANIMAL_PUNS = {
+  "wolf":     ["This wolf just HOWLED past you at 500mph through the f*cking stratosphere and you CAUGHT it with a flight number. Un-REAL. 🐺", "You tracked a wolf THROUGH THE GODDAMN SKY. Wolves aren't even supposed to be up there and yet here we both are and you FOUND IT. 🐺", "A wolf in a metal tube going 500mph thought it was safe. It was not safe. It was never safe. You were always going to find it. 🐺"],
+  "fox":      ["You outfoxed the ENTIRE SKY and it wasn't even close. The fox has been outsmarting predators for millennia and you did it with a WEBSITE. 🦊", "That sneaky little fox thought the sky was its safe space. Joke's on the fox because YOU don't need to see it to find it. 🦊", "The fox is sly? The fox is SLY?? YOU just pulled it out of the atmosphere with a 4-digit number. Who's sly NOW, fox?? 🦊"],
+  "bear":     ["A BEAR is at 38,000 feet RIGHT NOW and you found it. What in the actual hell is going on. A BEAR. IN THE SKY. FOUND BY YOU. 🐻", "That bear has no idea you're watching it from the ground and that's what makes this so deeply powerful. The bear will never know. 🐻", "Un-BEAR-lievably unhinged that any of this is real. A bear is currently being served pretzels in the sky and you just blew its cover. 🐻"],
+  "eagle":    ["Eagles have 8x human vision and you STILL clocked this one faster than it spotted anything. The eagle is embarrassed right now. Deep down it knows. 🦅", "The eagle is named after spotting things. You spotted IT. You reversed the food chain using WiFi and mild determination. 🦅", "You spotted an eagle FROM THE GROUND while the eagle was IN THE SKY. The eagle did NOT see you coming. Think about what that means. 🦅"],
+  "owl":      ["An owl — known for seeing absolutely everything — is currently being watched by YOU. How does that feel, owl?? Not so all-seeing NOW are you?? 🦉", "Owls rotate their heads 270 degrees to see everything. You didn't move ANY part of your body and still found it faster. 🦉", "The owl thought it was the apex observer. You showed up with a flight number app and made the owl look like an amateur. 🦉"],
+  "dolphin":  ["A dolphin is flying through the air in a METAL TUBE going 500mph and you located it using numbers and the internet. Dolphins can't even do THAT. 🐬", "Dolphins use echolocation to find things. You used WIFI. You were faster. Evolution spent millions of years on the dolphin and you beat it with broadband. 🐬", "That dolphin is vibing at cloud altitude thinking it's safe and you just violated its entire privacy with a 4-digit number. Rude. Iconic. 🐬"],
+  "shark":    ["A SHARK. In the SKY. Going 500 miles per hour over KANSAS. None of this is natural. You found it anyway. Nothing is real. 🦈", "Sharks have been apex predators for 450 MILLION years. You located one in under 10 seconds. The shark's entire evolutionary history did not prepare it for you. 🦈", "Jaws is currently haunting the stratosphere over America and you KNEW. You always know. The shark has nowhere to hide. Not even the sky. 🦈"],
+  "otter":    ["Sea otters hold hands so they don't drift apart. This otter drifted all the way into the f*cking sky and you still found it. No hand to hold. Just you and destiny. 🦦", "Otter-ly unhinged that you found this one. The otter is holding a tiny crab at 37,000 feet right now. You found the otter AND the crab by extension. 🦦", "That otter is floating through the sky in a metal log and you spotted it from the ground like it was NOTHING. It was NOT nothing. It was everything. The otter is shook. 🦦"],
+  "lynx":     ["The lynx has been stalking prey silently through wilderness for centuries. Today the lynx IS the prey. YOUR prey. From the ground. With an app. 🐱", "A lynx has giant silent paws designed for stealth. Cool! Didn't help. You found it anyway. The stealth paws did nothing against your spotting power. 🐱", "That lynx walks on snow without sinking. It flies through the sky without being noticed. USED to fly without being noticed. Then you happened. 🐱"],
+  "cougar":   ["A cougar can jump 40 feet horizontally. This one jumped 38,000 feet vertically by getting on a plane. You tracked the horizontal AND the vertical. 🐱", "Cougars hunt in complete silence and their prey never hears them coming. The cougar had absolutely zero idea YOU were coming with a flight number. 🐱", "COUGARatulations on the most unhinged spot of the day! That cougar is in the sky! You found it! Nothing means anything anymore! 🐱"],
+  "lion":     ["The lion is supposed to be the one doing the spotting. Not the one BEING spotted. You inverted the food chain WITH AN APP. Incredible audacity. 🦁", "ROAR! More like YOU-r! The lion is somewhere at 38,000 feet being dramatically found by you and it has absolutely no idea. 🦁", "You didn't just find a lion. You DOMINATED a lion. From the ground. The lion is in the sky wondering why it feels vaguely humiliated. 🦁"],
+  "bison":    ["A 2,000 lb bison is AIRBORNE right now and you found it in seconds. What is happening. What is any of this. A bison is in the sky. YOU FOUND THE SKY BISON. 🦬", "Bison once stampeded in herds so vast early explorers thought the GROUND was moving. This one stampeded directly into a metal tube and into your search results. 🦬", "The bison at 36,000 feet is having what I can only describe as the most existentially confusing day of its painted life. You found it mid-existential-crisis. 🦬"],
+  "moose":    ["A MOOSE is AIRBORNE. A MOOSE. The goofiest large animal alive is currently at altitude. You found it. The moose has absolutely no idea any of this is happening. Zero idea. 🫎", "Moose are so scientifically ridiculous they shouldn't exist. They got on a plane. They ALSO shouldn't be on a plane. You found it. Everything is wrong and it's perfect. 🫎", "That moose has 4-foot antlers. It somehow got through the gate. Security was a whole thing. It made it to altitude anyway. You found it. The moose won. So did you. 🫎"],
+  "deer":     ["Oh DEER OH DEAR a deer is FLYING and you FOUND IT and Bambi never stood a chance because you are the apex predator of flight tracking. 🦌", "That deer froze in headlights once and learned. It went to the sky to escape. The sky did not help. You were already there. Waiting. With a number. 🦌", "Un-FAWN-gettable that you found a flying deer. They put a DEER on a plane. You found the DEER on the PLANE. This sentence is insane and it happened. 🦌"],
+  "rabbit":   ["Rabbits zigzag at 18mph to escape. This one is going 500mph in a straight line. No zigzag. Nowhere to run. Except you still found it because you need no help. 🐇", "That rabbit has ZERO natural predators at 38,000 feet. It thought it was finally safe. IT WAS NOT SAFE. You exist at ALL altitudes. 🐇", "You pulled this rabbit out of the actual SKY. Not a hat. The SKY. That's harder than a hat. You found the sky rabbit. Magicians are obsolete. 🐇"],
+  "orca":     ["An orca — the ocean's apex predator — is currently above the clouds going 500mph and experiencing ZERO ocean. You found it in its most vulnerable moment. 🐋", "Orcas are called KILLER whales. Today the only thing getting killed is the idea that anything in this sky is safe from you. 🐋", "That orca is experiencing a complete and total absence of water at cruising altitude and you still found it mid-dehydration. You found it when it was DOWN. That's loyalty to the sport. 🐋"],
+  "manatee":  ["A sea cow. A SEA COW. Going 500mph. No sea. No cow behavior. Just a painted manatee in a metal tube that YOU found in seconds. Physics is dead. 🦭", "Manatees move 3-5mph in water. This one said 'what if 500mph with no water' and got on a plane. You tracked the 500mph version. The upgrade did nothing to hide it from you. 🦭", "That manatee eats 150 lbs of plants per day and there are ZERO plants at 37,000 feet. It is having the worst snack situation of its painted life. You found it starving. 🦭"],
+  "puffin":   ["Puffins flap 400 times per minute. This one outsourced the flapping to two giant engines. You found it MID-OUTSOURCE. The puffin thought outsourcing would protect it. It did not. 🐦", "That puffin is in a TUXEDO at ALL TIMES. It is currently the most formally dressed thing above 30,000 feet in American airspace. You found the tuxedo bird. 🐦", "The puffin vibrates through air at 55mph under its own power. It decided that was not enough and got on a plane. Ambition is beautiful. You found the ambitious puffin. 🐦"],
+  "flamingo": ["A flamboyance of flamingos. FLAMBOYANCE. One of them went solo in a metal tube and you found it. The flamboyance is incomplete. You know where the missing member is. 🦩", "Flamingos eat with their heads UPSIDE DOWN. This one is currently right-side up in a seat. This is the most disorienting day of its life. You found it during maximum confusion. 🦩", "That flamingo is pink because of shrimp. It is getting zero shrimp at altitude. It is fading. You found it before the pink fully went away. Quick thinking. 🦩"],
+  "falcon":   ["Peregrine falcons dive at 240mph. The plane they're painted on goes 500mph. The falcon lost its OWN speed record to the thing it's painted on. You found all of this simultaneously. 🦅", "The fastest animal on Earth is currently INSIDE a faster thing. You located the fast animal inside the faster thing. This is a nesting problem that only you could solve. 🦅", "That falcon is used to being untouchable. Then you typed four numbers into a box. Touchable. Found. Exposed. The falcon is rethinking everything. 🦅"],
+  "hawk":     ["Hawks have 8x human vision. You have 1x human vision and a mediocre WiFi connection. You won. The hawk is filing a formal complaint with evolution. 🦅", "That hawk has been watching everything from the sky its whole painted life. Today the sky watches IT. Because of you. You made the sky self-aware. 🦅", "You hawked in on that tail with precision that makes the actual hawk look like it needs glasses. The hawk does not need glasses. You are just better. 🦅"],
+  "condor":   ["There are fewer than 600 California condors in existence. One is on a Frontier plane right now. You found it. The statistical improbability of this moment is staggering. 🦅", "Condors soar for HOURS without flapping. This one got on a plane and did zero flapping the whole trip. Maximum efficiency. You tracked the maximum efficiency bird. 🦅", "A 9.5-foot wingspan somehow fits in a tail graphic. You found that graphic in the actual sky. None of the numbers in this situation make sense and yet here we are. 🦅"],
+  "turtle":   ["SHELL YEAH a turtle is flying and you found it!! Sea turtles hold their breath for 7 HOURS but they don't have to because PLANES HAVE PRESSURIZED AIR. The turtle is thriving. 🐢", "A turtle is doing 500mph. Slow and steady wins the race EXCEPT this turtle abandoned the whole philosophy and got on a plane. You tracked the philosophical betrayal. 🐢", "That turtle has been on Earth for 100 MILLION years. This is the highest it has EVER been. You found it at the literal peak of its species' entire existence. 🐢"],
+  "iguana":   ["An iguana is cold-blooded at -60°F outside the window. It is absolutely fine because PLANES ARE WARM. The iguana exploited modern aviation and you FOUND IT mid-exploit. 🦎", "Iguanas drop their tail to escape predators. It's painted on. It can't drop anything. It is cornered. And you found it. The iguana has no escape. You are too good. 🦎", "That iguana can hold its breath for 28 minutes. This skill does NOTHING at 37,000 feet. The iguana brought the wrong special ability. You found it anyway. 🦎"],
+  "coyote":   ["Coyotes are the most adaptable predator in North America. They adapted to skyscrapers, suburbs, AND the sky. You found it in all three contexts simultaneously. 🐺", "Wile E. Coyote spent DECADES trying to catch something with elaborate schemes. You caught THIS coyote in under 10 seconds with a NUMBER. The cartoon lied to us about difficulty. 🐺", "That coyote is everywhere. Every state. Every city. And now the sky. You can't escape a coyote. But you found the coyote. You're the exception. You found the everywhere animal. 🐺"],
+  "seal":     ["A seal is aerodynamic for water and absolutely NOT aerodynamic for air and yet it's at altitude anyway and you FOUND IT. The seal does not care about aerodynamics. Neither do you. 🦭", "Seals clap in appreciation. The seal is clapping for YOU right now at 37,000 feet and it doesn't even know why it feels compelled to do so. The seal just knows. 🦭", "That seal has never once felt wet water on its actual skin because its fur is so dense. It has also never once been at altitude before. You found it at both firsts. Historic. 🦭"],
+  "walrus":   ["A 3,700 POUND WALRUS is AIRBORNE. THREE THOUSAND SEVEN HUNDRED POUNDS. IN THE SKY. And you found it in seconds. The laws of physics are a suggestion. 🦭", "That walrus went through airport security with 3-foot tusks. SECURITY. WITH TUSKS. Somehow made it through. Made it to altitude. You found it. Everyone involved is incredible. 🦭", "The walrus can slow its own heartbeat to near zero in cold water. It is currently doing this at altitude because the plane is cold. You found it mid-cardiac-slowdown. 🦭"],
+  "penguin":  ["PENGUINS CANNOT FLY. This is a well-established fact. This penguin found a loophole in the rules of flight. You found the loophole penguin. Rules mean nothing. 🐧", "A penguin proposed to its mate with a pebble. Then it got on a plane. Life is a journey. You tracked the journey. You saw the pebble proposal AND the flight. You know too much. 🐧", "That penguin walks 50 miles through Antarctica to breed. It could not do this flight under its own power. It chose infrastructure. You found it choosing infrastructure. Smart penguin. Smarter you. 🐧"],
+  "heron":    ["A Great Blue Heron stands motionless for HOURS waiting for fish. It waited too long. It fell asleep. It woke up on a plane at altitude. You found it in this confused state. 🦤", "Herons make their own DRY SHAMPOO from their own FEATHERS. They have a personal care routine built into their body. The heron is the most self-sufficient bird. You found it mid-grooming. 🦤", "That heron is 4.5 feet tall. Getting through the jet bridge was an event. It made it. It's at altitude. You found it after all that. The heron and you both overcame obstacles today. 🦤"],
+  "stork":    ["Storks don't deliver babies but they DO deliver 150 passengers across America at 500mph. You found the delivery stork mid-delivery. The package is 150 humans. 🦢", "That stork returns to the same nest every year. This year the nest is a Frontier gate. Next year it'll be back. You found it during its annual rotation. You know its schedule. 🦢", "A stork nest can weigh over a TON from years of material additions. This stork's nest is now a 200,000 lb aircraft. The nest got out of hand. You found it. 🦢"],
+  "goat":     ["That mountain goat secretes its own grip glue from its hooves. It makes GLUE. With its FEET. Currently those feet are making glue onto the carpet of a Frontier A320. You found the glue goat. 🐐", "Mountain goats balance on 2-inch ledges. At 38,000 feet there are NO ledges. The goat is fully floating. This is its biggest challenge. You found it during maximum challenge. 🐐", "You GOAT this so completely it's embarrassing for the goat. The goat has never felt watched like this before. The goat is reassessing its confidence. 🐐"],
+  "beaver":   ["Beavers fell 5-inch trees in 3 MINUTES. This one looked at that capability and said 'you know what, plane.' Abandoned its gift. Got on a Frontier flight. You found it mid-abandonment. 🦫", "A beaver is currently surrounded by zero wood at 37,000 feet and it is having a genuine identity crisis. What IS a beaver without wood? You found it at rock bottom. 🦫", "That beaver's teeth NEVER stop growing. By the time this flight lands the beaver will have slightly more teeth than when it boarded. You found it at a random point in the infinite tooth growth. 🦫"],
+  "raccoon":  ["A raccoon is reading the in-flight snack packaging right now like braille with its 4x-sensitivity paws. It is appalled by the ingredient list. You found it mid-consumer-outrage. 🦝", "That raccoon would 100% go through your trash if given access. It cannot access your trash. It is at altitude. You found it denied of its purpose. The raccoon is lost without trash. 🦝", "Raccoons wash their food. The in-flight pretzels were NOT washed. The raccoon is struggling with this. You found it in the middle of a hygiene crisis at 37,000 feet. 🦝"],
+  "wolverine":["A wolverine — a 30-pound animal that drives GRIZZLY BEARS off their kills — is currently in a middle seat and it is furious about the legroom. You found it. 🦡", "The wolverine simply does not accept defeat. It has been placed in a metal tube going 500mph. It has accepted this. Nothing stops the wolverine. You found it accepting the unacceptable. 🦡", "That wolverine has been described as the most ferocious animal per pound on Earth. Per pound. It is pound-for-pound the angriest thing in the sky right now. You found the furious pound-leader. 🦡"],
+  "badger":   ["JOE BOB THE BADGER. In the SKY. Going 500mph. Joe Bob has no idea you're tracking him from the ground and honestly Joe Bob would be flattered and also aggressive about it. 🦡", "A badger can bury an entire COW. This badger is on a plane surrounded by humans. The badger is showing RESTRAINT. Enormous restraint. You found it during peak restraint. 🦡", "Joe Bob the Badger digs faster than a human with a shovel. Joe Bob is currently trapped in a seat unable to dig anything. Joe Bob is suffering. You found him suffering. Check on Joe Bob. 🦡"],
+  "pronghorn":["The pronghorn is STILL running from a predator that went extinct 10,000 YEARS AGO. IT'S A GHOST CHASER. You found the ghost chaser on a plane going twice its own top speed. 🦌", "That pronghorn does 55mph and it's not enough because the plane does 500mph and the cheetah ghost does 0mph because it's dead. The pronghorn is outrunning a ghost with a plane. You found this whole situation. 🦌", "The pronghorn is built for a world that no longer exists running from a threat that's been dead for 10 millennia. And it's on a plane. And you found it. Everything is beautiful and broken simultaneously. 🦌"],
+  "squirrel": ["A squirrel FORGETS 74% of its nuts and accidentally creates forests. This is the most successful failure in nature. You found the failure-forest-creator at 37,000 feet. 🐿️", "That squirrel forgot where it buried its nuts. It forgot it was afraid of heights. It boarded a plane. It is thriving through pure amnesia. You found the amnesiac squirrel. 🐿️", "You pulled this squirrel OUT of the STRATOSPHERE with a 4-digit number. The squirrel went NUTS doing this. You found the nutty stratosphere squirrel. I'm sorry. I'm not sorry. 🐿️"],
+  "chipmunk": ["A chipmunk's cheeks expand to 3 TIMES its head size when full of nuts. That chipmunk is currently at altitude with its face three times normal size. You found the enormous-faced chipmunk. 🐿️", "That chipmunk CHIPPED away at the laws of aerodynamics just by existing on this flight and you found it mid-law-violation. The FAA has questions. 🐿️", "A chipmunk with 9 nuts in its face-cheeks is currently being served pretzels on a plane. It cannot fit more. It is at maximum capacity. You found it at the limit. 🐿️"],
+  "axolotl":  ["AN AXOLOTL. IT CAN REGROW ITS OWN BRAIN. IT GOT ON A FRONTIER PLANE ANYWAY. The most regenerative animal on Earth made a questionable transportation decision and YOU FOUND IT. 🦎", "That axolotl never grows up — it stays a permanent baby forever. A permanent baby axolotl is at 38,000 feet. In a seat. With a tray table. You found the eternal sky baby. 🦎", "Axolotls regrow their heart. If the flight is stressful it can just grow a new one. It is the most emotionally resilient animal at altitude right now and you found it coping beautifully. 🦎"],
+  "default":  ["Something completely unhinged is SCREAMING through the stratosphere right now and YOU found it from the GROUND with NUMBERS and WIFI. This is insane. This is beautiful. This is you. 🐾", "That animal has absolutely no idea a person on the ground just located it through the upper atmosphere using determination and a flight number. It would be SHOOK. 🌿", "Whatever that animal is, it is currently at an altitude and speed its entire species has NEVER experienced in millions of years of evolution, and you just casually found it. No big deal. 💀", "A creature is hurtling through the dead cold of the upper atmosphere at 500mph in a pressurized metal tube and you located it like you were looking for your keys. YOU FOUND YOUR KEYS IN THE SKY. 🔭", "That animal is living its most chaotic and disorienting life right now at 38,000 feet. You found it. You witnessed it. You were THERE for its weirdest moment. That matters. 🦁"]
+};
+
+// ── Compliments ────────────────────────────────────────────
+const COMPLIMENTS = [
+  "🏆 HOLY SH*T!! You absolute f*cking WEAPON of a spotter! Scientists want to dissect your eyeballs to understand how this is POSSIBLE!",
+  "🌟 I called my mom and told her about you. She asked who you were. I said 'the greatest tail spotter alive.' She said 'oh thank god.' We're both crying.",
+  "🎯 What in the actual hell just happened?! You found that faster than I can find my own a** with both hands! LEGENDARY!",
+  "🦁 The Wright Brothers are rolling in their graves — in the GOOD way — because they built planes for people THIS badass to track. You are the reason aviation exists.",
+  "🔭 Frontier Airlines just held an emergency board meeting about you. The CEO said 'who the f*ck keeps finding all our animals?' It's you. It's always been you.",
+  "🏅 I showed this spot to God. He said 'damn, I didn't even see that one coming.' YOU out-spotted the CREATOR OF ALL THINGS.",
+  "👑 The animals on these planes are AWARE of you. They press their little painted faces to the window and they KNOW. They fear you. They respect you. Mostly they fear you.",
+  "🌈 You have unlocked a neurological ability that medical science has no name for. They're calling it 'Frontier Vision.' It skipped a few billion people and landed on YOU.",
+  "🎉 WHAT THE ABSOLUTE F*CK!! That was so fast the server thought it was a DDoS attack!! You are a one-person cyberattack of pure spotting excellence!!",
+  "🚀 NASA called. They don't want you for space. They want you to run their entire global aircraft monitoring division because you're better than all of it COMBINED.",
+  "🔥 I've been building this app for months and you just used it in a way that made me feel like I built something truly worthy. You absolute legend. I'm not crying. You're crying.",
+  "💥 The other plane spotters heard about you. They gathered at the airport fence. Someone whispered your name. Three people quit on the spot. You didn't even try.",
+  "🎖️ A bald eagle flew past my window the exact moment you hit Spot It. I looked it up — eagles don't just do that. Nature staged a ceremony FOR YOU.",
+  "🛫 You found it so fast that adsb.fi emailed me asking if something was wrong. I said 'no that's just Rob.' They said 'Rob needs to be stopped.' I said 'nobody can stop Rob.'",
+  "🤯 My brain has physically left my body. I am a ghost haunting this app now. You spotted so well that you KILLED ME. I died happy. Thank you.",
+  "🐾 The Frontier animals held a democratic vote on who should spot them. It was unanimous. Even the walrus voted for you. The walrus doesn't vote for ANYONE.",
+  "💫 Future historians will dedicate an entire chapter to this moment. Not the whole book. Just one chapter. But it'll be the best chapter. It'll make people cry.",
+  "🦅 I am getting a tattoo of your flight number lookup. On my FACE. Because I want people to ask me about the greatest plane spotter I've ever witnessed.",
+  "🎪 You didn't just find a tail number. You found YOURSELF. You found your PURPOSE. You found N326FR. These are all the same thing.",
+  "🌍 The Earth literally rotated slightly faster when you hit that button. Physicists noticed. They filed a report. The report said 'we think someone in [your location] just spotted a plane really well.'",
+];
+
+function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function getPun(animal) {
+  if (!animal || !animal.species) return randomFrom(ANIMAL_PUNS['default']);
+  const species = ((animal.species || '') + ' ' + (animal.name || '')).toLowerCase();
+  for (const [keyword, puns] of Object.entries(ANIMAL_PUNS)) {
+    if (keyword === 'default') continue;
+    if (species.includes(keyword)) return randomFrom(puns);
+  }
+  return randomFrom(ANIMAL_PUNS['default']);
+}
+
+// ── DOM refs ───────────────────────────────────────────────
+const input   = document.getElementById('flightNum');
+const statusEl= document.getElementById('status');
+const card    = document.getElementById('card');
+const btn     = document.getElementById('goBtn');
+
+btn.addEventListener('click', lookup);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
+input.addEventListener('input',   () => { input.value = input.value.replace(/[^0-9]/g, ''); });
+
+function setStatus(msg, spinning) {
+  statusEl.innerHTML = spinning
+    ? '<div class="spinner"></div><span>' + msg + '</span>'
+    : msg ? '<span>' + msg + '</span>' : '';
+}
+
+// ── Main lookup ────────────────────────────────────────────
+async function lookup() {
+  const raw = input.value.trim();
+  if (!raw) return;
+
+  card.classList.remove('show');
+  card.innerHTML = '';
+  btn.disabled = true;
+  setStatus('🔭 Scanning the skies for wild tails...', true);
+
+  try {
+    const callsign = 'FFT' + raw;
+    const resp = await fetch(WORKER_URL + '?callsign=' + callsign);
+    if (!resp.ok) throw new Error('Server returned ' + resp.status);
+    const data = await resp.json();
+
+    if (data.error && (!data.ac || data.ac.length === 0)) throw new Error(data.error);
+
+    const aircraft = data.ac;
+    if (!aircraft || aircraft.length === 0) {
+      setStatus('');
+      card.innerHTML = '<div class="err">🌿 <strong>Flight F9 ' + raw + ' not spotted!</strong><br>This elusive creature may be hiding on the ground. Try again when the flight is airborne!</div>';
+      card.classList.add('show');
+      btn.disabled = false;
+      return;
+    }
+
+    const ac = aircraft[0];
+    const tail = (ac.r || '').toUpperCase().trim();
+    const altitude = ac.alt_baro;
+    const speed = ac.gs ? Math.round(ac.gs) : null;
+
+    setStatus('');
+
+    const animal = FLEET[tail];
+    if (!animal) {
+      card.innerHTML =
+        '<div class="unknown-tail">🐆 <strong>' + (tail||'Unknown tail') + '</strong> — this animal is hiding in the bush! Not in the safari guide yet.<br><br>' +
+        '<a href="https://www.flightradar24.com/data/aircraft/' + (tail||'').toLowerCase() + '" target="_blank">Track ' + tail + ' on Flightradar24 →</a></div>' +
+        '<div style="margin-top:0.6rem;font-size:12px;color:#a1887f;font-weight:700;">Flight: F9 ' + raw + ' · Tail: ' + (tail||'unknown') + '</div>';
+      card.classList.add('show');
+      btn.disabled = false;
+      return;
+    }
+
+    // Render result immediately with emoji, then load photo async
+    renderResult(tail, altitude, speed, raw, animal, ac.lat, ac.lon, ac.alt_baro);
+
+  } catch(e) {
+    setStatus('');
+    card.innerHTML = '<div class="err">🦏 <strong>Safari radio error:</strong> ' + e.message + '<br>Check your connection and try again!</div>';
+    card.classList.add('show');
+    btn.disabled = false;
+  }
+}
+
+
+
+function fmtAlt(a) {
+  if (a === undefined || a === null) return '—';
+  if (a === 'ground') return 'On ground';
+  return Number(a).toLocaleString() + ' ft';
+}
+
+
+// Casual location descriptions based on lat/lon
+function getLocationStr(lat, lon, altRaw) {
+  try {
+  if (lat === undefined || lat === null || lon === undefined || lon === null) return null;
+
+  const alt = Number(altRaw);
+  const onGround = !altRaw || altRaw === 'ground' || alt < 1000;
+
+  // Pick a casual action phrase based on altitude
+  function vibeAt(place) {
+    if (onGround) {
+      const groundVibes = [
+        'just sitting on its butt at ' + place + ' doing absolutely nothing',
+        'parked at ' + place + ' and honestly? good for it. rest king.',
+        'on the ground at ' + place + ' eating a sandwich probably',
+        'chilling at the gate in ' + place + ' like it owns the place',
+        'napping on the tarmac at ' + place + ' — it worked hard, leave it alone',
+        'grounded at ' + place + ' waiting for Dave from maintenance to show up',
+        'sitting at ' + place + ' thinking about its life choices',
+        'wheels planted firmly at ' + place + ' and NOT your problem right now',
+        'having a little me-time at ' + place,
+        'at ' + place + ' getting its belly full of Jet-A before the next adventure',
+      ];
+      return groundVibes[Math.floor(Math.random() * groundVibes.length)];
+    }
+    if (alt < 10000) {
+      const lowVibes = [
+        'screaming into the sky out of ' + place + ' like a bat outta hell',
+        'hauling itself off the ground near ' + place + ' — LETS GOOO',
+        'clawing for altitude near ' + place + ' like its life depends on it',
+        'on final approach into ' + place + ', almost home baby',
+        'low and dirty near ' + place + ' — this is the exciting part',
+        'somewhere very low and very fast near ' + place + ' and it is SENDING IT',
+        'descending into ' + place + ' like a majestic, slightly loud bird',
+        'buzzing the locals near ' + place,
+      ];
+      return lowVibes[Math.floor(Math.random() * lowVibes.length)];
+    }
+    // Cruising altitude vibes
+    const cruiseVibes = [
+      'absolutely HAULING over ' + place + ' at an unreasonable altitude',
+      'somewhere over ' + place + ' doing 500mph and zero regrets',
+      'blasting through the stratosphere over ' + place + ' like it owns the sky',
+      'vibing peacefully over ' + place + ' at 36,000 ft — not a care in the world',
+      'floating over ' + place + ' like a majestic metal goose',
+      'screaming silently over ' + place + ' in the cold dead of the upper atmosphere',
+      'probably serving pretzels somewhere over ' + place + ' right now',
+      'cruising over ' + place + ' while 150 people watch the same Netflix movie',
+      'somewhere over ' + place + ' and the pilots are definitely talking about sports',
+      'high above ' + place + ' making it look EFFORTLESS',
+      'terrorizing the jetstream somewhere over ' + place,
+      'waving at birds over ' + place + ' from a completely disrespectful altitude',
+      'over ' + place + ' going so fast the ground beneath it feels personally attacked',
+      'living its absolute best life somewhere above ' + place,
+      'rocketing over ' + place + ' like gravity is just a suggestion',
+      'somewhere over ' + place + ' — the flight attendants are mid-announcement, nobody is listening',
+    ];
+    return cruiseVibes[Math.floor(Math.random() * cruiseVibes.length)];
+  }
+
+  const lt = lat, ln = lon;
+
+  // Alaska
+  if (lt > 54 && ln < -130) return vibeAt('Alaska');
+  // Hawaii
+  if (lt > 18 && lt < 23 && ln < -154) return vibeAt('Hawaii');
+  // Pacific Ocean
+  if (ln < -140 && lt < 55) return vibeAt('the Pacific Ocean');
+  // Atlantic Ocean
+  if (ln > -40 && ln < -10 && lt > 20 && lt < 60) return vibeAt('the Atlantic Ocean');
+  // Canada
+  if (lt > 49 && lt < 85 && ln > -141 && ln < -52) {
+    if (ln < -110) return vibeAt('western Canada');
+    if (ln < -85) return vibeAt('the Canadian prairies');
+    return vibeAt('eastern Canada');
+  }
+  // Mexico
+  if (lt < 30 && lt > 14 && ln > -118 && ln < -86) return vibeAt('Mexico');
+  // Caribbean
+  if (lt > 10 && lt < 25 && ln > -85 && ln < -60) return vibeAt('the Caribbean');
+  // South America
+  if (lt < 14) return vibeAt('South America');
+  // Continental US - divide into regions
+  if (lt >= 24 && lt <= 49 && ln >= -125 && ln <= -66) {
+    // Pacific Northwest
+    if (lt > 45 && ln < -116) return vibeAt('the Pacific Northwest');
+    // Northern California
+    if (lt > 37 && lt < 42 && ln < -120) return vibeAt('Northern California');
+    // Southern California
+    if (lt >= 32 && lt <= 37 && ln < -114) return vibeAt('Southern California');
+    // Nevada / Death Valley area  
+    if (lt > 36 && lt < 42 && ln > -120 && ln < -114) return vibeAt('Nevada');
+    // Arizona
+    if (lt > 31 && lt < 37 && ln > -115 && ln < -109) return vibeAt('Arizona, probably roasting');
+    // New Mexico
+    if (lt > 31 && lt < 37 && ln > -109 && ln < -103) return vibeAt('New Mexico');
+    // Texas panhandle / west TX
+    if (lt > 30 && lt < 34 && ln > -105 && ln < -100) return vibeAt('West Texas');
+    // Texas
+    if (lt > 25 && lt < 36 && ln > -107 && ln < -93) return vibeAt('Texas, yeehaw');
+    // Montana / Wyoming / Idaho
+    if (lt > 44 && ln > -116 && ln < -104) {
+      if (ln < -110) return vibeAt('Montana or Idaho');
+      return vibeAt('Wyoming or Montana');
+    }
+    // Colorado / Rocky Mountains
+    if (lt > 36 && lt < 41 && ln > -109 && ln < -102) return vibeAt('the Rockies over Colorado');
+    // Utah
+    if (lt > 37 && lt < 42 && ln > -114 && ln < -109) return vibeAt('Utah');
+    // North Dakota / South Dakota
+    if (lt > 45 && lt < 49 && ln > -104 && ln < -96) return vibeAt('the Dakotas');
+    // Nebraska / Kansas
+    if (lt > 36 && lt < 43 && ln > -102 && ln < -95) {
+      if (lt > 40) return vibeAt('Nebraska');
+      return vibeAt('Kansas');
+    }
+    // Oklahoma
+    if (lt > 33 && lt < 37 && ln > -103 && ln < -94) return vibeAt('Oklahoma');
+    // Minnesota / Wisconsin
+    if (lt > 43 && lt < 49 && ln > -97 && ln < -86) {
+      if (ln < -90) return vibeAt('Minnesota');
+      return vibeAt('Wisconsin');
+    }
+    // Iowa
+    if (lt > 40 && lt < 43 && ln > -96 && ln < -90) return vibeAt('Iowa');
+    // Missouri
+    if (lt > 36 && lt < 40 && ln > -95 && ln < -89) return vibeAt('Missouri');
+    // Arkansas
+    if (lt > 33 && lt < 36 && ln > -95 && ln < -89) return vibeAt('Arkansas');
+    // Louisiana / Mississippi
+    if (lt > 28 && lt < 33 && ln > -94 && ln < -88) {
+      if (ln < -91) return vibeAt('Louisiana');
+      return vibeAt('Mississippi');
+    }
+    // Great Lakes / Illinois / Indiana / Ohio  
+    if (lt > 40 && lt < 47 && ln > -90 && ln < -80) {
+      if (ln < -87) return vibeAt('Illinois');
+      if (ln < -84) return vibeAt('Indiana');
+      return vibeAt('Ohio');
+    }
+    // Michigan
+    if (lt > 41 && lt < 48 && ln > -90 && ln < -82) return vibeAt('Michigan');
+    // Kentucky / Tennessee
+    if (lt > 35 && lt < 39 && ln > -90 && ln < -81) {
+      if (lt > 37) return vibeAt('Kentucky');
+      return vibeAt('Tennessee');
+    }
+    // Alabama / Georgia
+    if (lt > 30 && lt < 35 && ln > -89 && ln < -81) {
+      if (ln < -85) return vibeAt('Alabama');
+      return vibeAt('Georgia');
+    }
+    // Florida
+    if (lt > 24 && lt < 31 && ln > -88 && ln < -79) {
+      if (lt < 27) return vibeAt('South Florida, where always sweaty');
+      return vibeAt('Florida');
+    }
+    // Southeast coast
+    if (lt > 31 && lt < 37 && ln > -82 && ln < -75) {
+      if (lt < 33) return vibeAt('South Carolina');
+      if (lt < 36) return vibeAt('North Carolina');
+    }
+    // Virginia / West Virginia
+    if (lt > 36 && lt < 40 && ln > -83 && ln < -75) return vibeAt('Virginia');
+    // Mid-Atlantic (PA, NJ, DE, MD)
+    if (lt > 38 && lt < 42 && ln > -80 && ln < -73) {
+      if (lt > 40) return vibeAt('Pennsylvania');
+      return vibeAt('the Mid-Atlantic');
+    }
+    // New England
+    if (lt > 41 && lt < 47 && ln > -73.5 && ln < -66) {
+      if (lt > 44) return vibeAt('Maine or Vermont');
+      if (ln < -71) return vibeAt('upstate New York');
+      return vibeAt('New England');
+    }
+    // New York City area
+    if (lt > 40 && lt < 41.5 && ln > -74.5 && ln < -73) return vibeAt('the New York City area');
+    // Default US catch-all by region
+    if (ln < -100) return vibeAt('the western US');
+    if (ln < -90) return vibeAt('the midwest');
+    return vibeAt('the eastern US');
+  }
+  // Europe
+  if (lt > 35 && lt < 72 && ln > -10 && ln < 40) {
+    if (ln < 3) return vibeAt('western Europe');
+    if (ln < 15) return vibeAt('central Europe');
+    return vibeAt('eastern Europe');
+  }
+  // Default
+  return vibeAt('parts unknown');
+  } catch(e) { return null; }
+}
+
+function renderResult(tail, altitude, speed, flightNum, animal, lat, lon, altRaw, showExtras = true) {
+  try {
+  // Generate casual location description
+  const locationStr = getLocationStr(lat, lon, altRaw);
+  const pun = (showExtras && animal) ? getPun(animal) : '';
+  const compliment = showExtras ? randomFrom(COMPLIMENTS) : '';
+
+  card.innerHTML =
+    (showExtras && compliment ? '<div class="compliment">' + compliment + '</div>' : '') +
+    '<div class="animal-row">' +
+      '<div class="emoji-bubble">' + animal.emoji + '</div>' +
+      '<div>' +
+        '<div class="animal-name">' + animal.name + '</div>' +
+        '<div class="animal-species">' + animal.species + '</div>' +
+        '<span class="aircraft-badge">✈️ Airbus ' + animal.ac + '</span>' +
+      '</div>' +
+    '</div>' +
+    (animal.fact ? '<div class="fun-fact">' + animal.fact + '</div>' : '') +
+    (showExtras && pun ? '<div class="pun">' + pun + '</div>' : '') +
+    (locationStr ? '<div class="location-box">' + locationStr + '</div>' : '') +
+    '<div class="stats">' +
+      '<div class="stat"><div class="stat-label">Tail #</div><div class="stat-val">' + tail + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Altitude</div><div class="stat-val">' + fmtAlt(altitude) + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Speed</div><div class="stat-val">' + (speed ? speed + ' kts' : '—') + '</div></div>' +
+    '</div>' +
+    '<div><span class="live-badge"><span class="live-dot"></span> Live sighting · adsb.fi</span></div>';
+
+  card.classList.add('show');
+  } catch(err) {
+    card.innerHTML = '<div class="err">⚠️ Display error: ' + err.message + '</div>';
+    card.classList.add('show');
+  }
+}
+
+
+// Flyover: random live Frontier planes fly across the screen
+const flyoverContainer = document.getElementById('flyover-container');
+let activeFlyovers = 0;
+const ALL_TAILS = Object.keys(FLEET);
+
+function spawnFlyover(tail, animal, altStr, spd) {
+  activeFlyovers++;
+  const topPct = 8 + Math.random() * 42;
+  const goRight = Math.random() > 0.5;
+  const screenW = window.innerWidth;
+
+  // Plane element
+  const el = document.createElement('div');
+  el.className = 'flyover-plane';
+  el.style.cssText = 'position:absolute;top:' + topPct + '%;left:' + (goRight ? -120 : screenW+120) + 'px;' + (!goRight ? 'transform:scaleX(-1);' : '');
+  el.innerHTML = '<div class="fp-body">' + (goRight ? '\u2708\uFE0F' : '\u2708\uFE0F') + '</div>' +
+                 '<div class="fp-animal">' + animal.emoji + '</div>' +
+                 '<div class="fp-label">' + tail + '</div>';
+  flyoverContainer.appendChild(el);
+
+  // Tooltip
+  const tip = document.createElement('div');
+  tip.className = 'flyover-tip';
+  tip.innerHTML = '<strong>' + animal.name + '</strong>' + tail + ' &middot; ' + altStr + ' ft' + (spd ? ' &middot; ' + spd + ' kts' : '');
+  tip.style.cssText = 'position:absolute;top:calc(' + topPct + '% + 55px);left:-300px;';
+  flyoverContainer.appendChild(tip);
+
+  const duration = 16000 + Math.random() * 10000;
+  const t0 = performance.now();
+
+  (function frame(now) {
+    const p = (now - t0) / duration;
+    if (p >= 1) { el.remove(); tip.remove(); activeFlyovers = Math.max(0, activeFlyovers-1); return; }
+    const x = goRight ? -120 + p*(screenW+240) : (screenW+120) - p*(screenW+240);
+    const wave = Math.sin(p * Math.PI * 4) * 6;
+    el.style.left = x + 'px';
+    el.style.top = 'calc(' + topPct + '% + ' + wave + 'px)';
+    tip.style.left = (x + (goRight ? 40 : -40)) + 'px';
+    tip.style.top = 'calc(' + topPct + '% + ' + (wave+52) + 'px)';
+    requestAnimationFrame(frame);
+  })(t0);
+}
+
+async function tryFlyover() {
+  if (activeFlyovers >= 2) return;
+  const tail = ALL_TAILS[Math.floor(Math.random() * ALL_TAILS.length)];
+  const animal = FLEET[tail];
+  if (!animal) return;
+  try {
+    const r = await fetch('https://opendata.adsb.fi/api/v2/registration/' + tail);
+    if (!r.ok) return;
+    const d = await r.json();
+    const ac = d.ac && d.ac[0];
+    if (!ac || !ac.alt_baro || ac.alt_baro === 'ground' || Number(ac.alt_baro) < 2000) return;
+    spawnFlyover(tail, animal, Number(ac.alt_baro).toLocaleString(), ac.gs ? Math.round(ac.gs) : null);
+  } catch(e) {}
+}
+
+// Random flight finder - picks random tails and checks registration via worker
+const randBtn = document.getElementById('randBtn');
+randBtn.addEventListener('click', randomFlight);
+
+async function randomFlight() {
+  randBtn.disabled = true;
+  btn.disabled = true;
+  card.classList.remove('show');
+  card.innerHTML = '';
+
+  const tails = Object.keys(FLEET);
+  const shuffled = tails.slice().sort(() => Math.random() - 0.5);
+  const maxTries = 25;
+  let found = false;
+
+  for (let i = 0; i < Math.min(maxTries, shuffled.length); i++) {
+    const tail = shuffled[i];
+    const animal = FLEET[tail];
+    setStatus('🎲 Searching the skies... checking ' + tail + ' (' + (i+1) + '/' + maxTries + ')', true);
+
+    try {
+      const resp = await fetch(WORKER_URL + '?reg=' + tail);
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const ac = data.ac && data.ac[0];
+      if (!ac) continue;
+      const alt = ac.alt_baro;
+      if (!alt || alt === 'ground' || Number(alt) < 1000) continue;
+
+      // Found an airborne plane!
+      const callsign = (ac.flight || '').trim();
+      const flightNum = callsign.replace(/^FFT0*/, '') || tail;
+      const speed = ac.gs ? Math.round(ac.gs) : null;
+
+      input.value = flightNum;
+      setStatus('');
+      renderResult(tail, alt, speed, flightNum, animal, ac.lat, ac.lon, ac.alt_baro, false);
+      found = true;
+      break;
+
+    } catch(e) { continue; }
+  }
+
+  if (!found) {
+    setStatus('');
+    card.innerHTML = '<div class="err">🎲 Checked ' + maxTries + ' planes and none were airborne — try again in a moment!</div>';
+    card.classList.add('show');
+  }
+
+  randBtn.disabled = false;
+  btn.disabled = false;
+}
+setTimeout(tryFlyover, 3000);
+setInterval(tryFlyover, 22000);
+
+</script>
